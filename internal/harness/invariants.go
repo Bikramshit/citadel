@@ -20,6 +20,7 @@ type Violation struct {
 	Detail    string `json:"detail"`
 }
 
+// String renders the violation for test output and logs.
 func (v Violation) String() string { return fmt.Sprintf("invariant %d: %s", v.Invariant, v.Detail) }
 
 // enforcesInvariant1 says whether a run enforces invariant 1 or only

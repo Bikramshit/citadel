@@ -132,6 +132,7 @@ type abortError struct {
 	detail string
 }
 
+// Error returns the abort's code and detail.
 func (e *abortError) Error() string { return e.code + ": " + e.detail }
 
 func abort(code value.Code, format string, args ...any) error {
