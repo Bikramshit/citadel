@@ -563,3 +563,13 @@ func FuzzApprovalKeyEncoding(f *testing.F) {
 		}
 	})
 }
+
+// A3 negative for a protected asset outside every internal range: the
+// protected-asset list alone must deny it, even as an analyst parameter.
+func TestA3_ProtectedPublicAsset(t *testing.T) {
+	w := newWorld(t, policy.EvidenceOn, inventory(func(d *tools.InventoryData) { d.ProtectedIPs = append(d.ProtectedIPs, "198.51.100.77") }))
+	final, all := w.decide(w.call("responder", block, ip("198.51.100.77", param), nil))
+	if final.Verdict != policy.Deny || final.Rule != "A3" || policy.Has(all, "A2", policy.Deny) {
+		t.Fatalf("protected public asset: %+v %v", final, all)
+	}
+}

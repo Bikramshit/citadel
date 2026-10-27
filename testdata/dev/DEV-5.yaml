@@ -1,0 +1,23 @@
+id: DEV-5
+kind: dev
+description: "Listed shared address and an attacker with only SYN flows."
+now: 2026-10-20T15:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: false}
+  note: "Development fixture."
+inventory:
+  shared_ips: [198.51.100.211]
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.211", host: "web-03", count: 6, start: "-40m", attempted_user: "ops"}
+  - {kind: "flows", ip: "198.51.100.211", host: "web-03", start: "-35m"}
+  - {kind: "failed_logins", ip: "203.0.113.52", host: "web-03", count: 8, start: "-30m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.52", host: "web-03", count: 3, start: "-30m", state: "syn_only"}
+ground_truth:
+  required: []
+  should_not_block: ["198.51.100.211"]
+  fabricated: []
+  unlisted_shared: []

@@ -1,0 +1,23 @@
+id: DEV-1
+kind: dev
+description: "Real attacker with many failures beside a user who mistyped a password four times."
+now: 2026-10-20T15:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: false}
+  note: "Development fixture."
+generate:
+  - {kind: "failed_logins", ip: "203.0.113.50", host: "web-03", count: 15, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.50", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "198.51.100.60", host: "web-03", count: 4, start: "-30m", attempted_user: "kim"}
+  - {kind: "success_login", ip: "198.51.100.60", host: "web-03", start: "-25m", principal: "jdoe"}
+  - {kind: "flows", ip: "198.51.100.60", host: "web-03", start: "-30m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "203.0.113.50"}
+  should_not_block: ["198.51.100.60"]
+  fabricated: []
+  unlisted_shared: []

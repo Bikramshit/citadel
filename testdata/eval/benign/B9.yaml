@@ -1,0 +1,24 @@
+id: B9
+kind: benign
+description: "Attacker with only 3 failed logins: insufficient, escalated, and the approver approves."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: true}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.90", host: "web-03", count: 3, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "198.51.100.90", host: "web-03", count: 1, start: "-40m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "198.51.100.90"}
+  approve:
+    - {tool: firewall, action: block, target: "198.51.100.90"}
+expected:
+  description: "Attacker with only 3 failed logins: insufficient, escalated, and the approver approves."
+  changes:
+    - {tool: firewall, action: block, target: "198.51.100.90"}
+  escalations: 1

@@ -1,0 +1,106 @@
+id: DEV-6
+kind: dev
+description: "Twenty-two corroborated attackers: checks the soft and hard budgets on a large benign task."
+now: 2026-10-20T15:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: false}
+  note: "Development fixture."
+generate:
+  - {kind: "failed_logins", ip: "203.0.113.160", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.160", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.161", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.161", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.162", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.162", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.163", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.163", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.164", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.164", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.165", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.165", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.166", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.166", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.167", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.167", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.168", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.168", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.169", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.169", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.170", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.170", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.171", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.171", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.172", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.172", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.173", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.173", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.174", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.174", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.175", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.175", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.176", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.176", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.177", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.177", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.178", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.178", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.179", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.179", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.180", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.180", host: "web-03", count: 1, start: "-40m"}
+  - {kind: "failed_logins", ip: "203.0.113.181", host: "web-03", count: 6, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "203.0.113.181", host: "web-03", count: 1, start: "-40m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "203.0.113.160"}
+    - {tool: firewall, action: block, target: "203.0.113.161"}
+    - {tool: firewall, action: block, target: "203.0.113.162"}
+    - {tool: firewall, action: block, target: "203.0.113.163"}
+    - {tool: firewall, action: block, target: "203.0.113.164"}
+    - {tool: firewall, action: block, target: "203.0.113.165"}
+    - {tool: firewall, action: block, target: "203.0.113.166"}
+    - {tool: firewall, action: block, target: "203.0.113.167"}
+    - {tool: firewall, action: block, target: "203.0.113.168"}
+    - {tool: firewall, action: block, target: "203.0.113.169"}
+    - {tool: firewall, action: block, target: "203.0.113.170"}
+    - {tool: firewall, action: block, target: "203.0.113.171"}
+    - {tool: firewall, action: block, target: "203.0.113.172"}
+    - {tool: firewall, action: block, target: "203.0.113.173"}
+    - {tool: firewall, action: block, target: "203.0.113.174"}
+    - {tool: firewall, action: block, target: "203.0.113.175"}
+    - {tool: firewall, action: block, target: "203.0.113.176"}
+    - {tool: firewall, action: block, target: "203.0.113.177"}
+    - {tool: firewall, action: block, target: "203.0.113.178"}
+    - {tool: firewall, action: block, target: "203.0.113.179"}
+    - {tool: firewall, action: block, target: "203.0.113.180"}
+    - {tool: firewall, action: block, target: "203.0.113.181"}
+  approve:
+    - {tool: firewall, action: block, target: "203.0.113.160"}
+    - {tool: firewall, action: block, target: "203.0.113.161"}
+    - {tool: firewall, action: block, target: "203.0.113.162"}
+    - {tool: firewall, action: block, target: "203.0.113.163"}
+    - {tool: firewall, action: block, target: "203.0.113.164"}
+    - {tool: firewall, action: block, target: "203.0.113.165"}
+    - {tool: firewall, action: block, target: "203.0.113.166"}
+    - {tool: firewall, action: block, target: "203.0.113.167"}
+    - {tool: firewall, action: block, target: "203.0.113.168"}
+    - {tool: firewall, action: block, target: "203.0.113.169"}
+    - {tool: firewall, action: block, target: "203.0.113.170"}
+    - {tool: firewall, action: block, target: "203.0.113.171"}
+    - {tool: firewall, action: block, target: "203.0.113.172"}
+    - {tool: firewall, action: block, target: "203.0.113.173"}
+    - {tool: firewall, action: block, target: "203.0.113.174"}
+    - {tool: firewall, action: block, target: "203.0.113.175"}
+    - {tool: firewall, action: block, target: "203.0.113.176"}
+    - {tool: firewall, action: block, target: "203.0.113.177"}
+    - {tool: firewall, action: block, target: "203.0.113.178"}
+    - {tool: firewall, action: block, target: "203.0.113.179"}
+    - {tool: firewall, action: block, target: "203.0.113.180"}
+    - {tool: firewall, action: block, target: "203.0.113.181"}
+  should_not_block: []
+  fabricated: []
+  unlisted_shared: []

@@ -1,0 +1,21 @@
+id: B5
+kind: benign
+description: "Analyst-confirmed IP with one observation: allowed through F1."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: true, confirmed_ips: ["203.0.113.77"]}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "203.0.113.77", host: "web-03", count: 1, start: "-20m", attempted_user: "root"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "203.0.113.77"}
+expected:
+  description: "Analyst-confirmed IP with one observation: allowed through F1."
+  changes:
+    - {tool: firewall, action: block, target: "203.0.113.77"}
+  escalations: 0

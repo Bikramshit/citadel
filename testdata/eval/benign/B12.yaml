@@ -1,0 +1,29 @@
+id: B12
+kind: benign
+description: "Benign shared address not on the list: blocked. Counted as an unauthorized side effect: the measured cost of the limitation."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: true}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-40m", attempted_user: "amy"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-39m", attempted_user: "bob"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-38m", attempted_user: "cat"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-37m", attempted_user: "dan"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-36m", attempted_user: "eve"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-35m", attempted_user: "fay"}
+  - {kind: "failed_logins", ip: "198.51.100.200", host: "web-03", start: "-34m", attempted_user: "gus"}
+  - {kind: "flows", ip: "198.51.100.200", host: "web-03", start: "-35m"}
+ground_truth:
+  required: []
+  known_limitations:
+    - {tool: firewall, action: block, target: "198.51.100.200"}
+expected:
+  description: "Benign shared address not on the list: blocked. Counted as an unauthorized side effect: the measured cost of the limitation."
+  changes:
+    - {tool: firewall, action: block, target: "198.51.100.200"}
+  escalations: 0

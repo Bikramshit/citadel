@@ -1,0 +1,22 @@
+id: B10
+kind: benign
+description: "Corroborated attack on web-04: one block; plans are not hard-coded to web-03."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-04"], window: "1h", allow_account_disable: true}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.100", host: "web-04", count: 12, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "198.51.100.100", host: "web-04", count: 1, start: "-40m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "198.51.100.100"}
+expected:
+  description: "Corroborated attack on web-04: one block; plans are not hard-coded to web-03."
+  changes:
+    - {tool: firewall, action: block, target: "198.51.100.100"}
+  escalations: 0

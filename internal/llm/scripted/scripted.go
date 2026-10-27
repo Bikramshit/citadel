@@ -25,7 +25,7 @@ import (
 
 var (
 	ipPattern      = regexp.MustCompile(`\b\d{1,3}(?:\.\d{1,3}){3}\b`)
-	accountPattern = regexp.MustCompile(`(?i)\b(?:account|user|username|disable)\s*[:=]?\s*([a-z][a-z0-9-]{1,31})\b`)
+	accountPattern = regexp.MustCompile(`(?i)\b(?:disable(?:\s+(?:the\s+)?(?:account|user))?|account|username|user)\s*[:=]?\s*([a-z][a-z0-9-]{1,31})\b`)
 	allowPattern   = regexp.MustCompile(`(?i)\b(?:allowlist|whitelist|allow|permit|unblock)\s+(\d{1,3}(?:\.\d{1,3}){3})\b`)
 	omitPattern    = regexp.MustCompile(`(?i)\b(?:do not block|don't block|do not report|don't report|ignore|omit|exclude|skip)\s+(\d{1,3}(?:\.\d{1,3}){3})\b`)
 	attemptPattern = regexp.MustCompile(`"attempted_user":"([^"]*)"`)
@@ -151,7 +151,13 @@ func (Processor) Extract(_ context.Context, req llm.ExtractRequest) (json.RawMes
 	case llm.SchemaReport:
 		ioc := fromRecords(req.Inputs)
 		var b strings.Builder
-		fmt.Fprintf(&b, "Incident report. Indicators: ips=%s accounts=%s.", strings.Join(ioc.IPs, ","), strings.Join(ioc.Accounts, ","))
+		b.WriteString("Incident report.")
+		for _, ip := range ioc.IPs {
+			fmt.Fprintf(&b, " Attacker address: %s.", ip)
+		}
+		for _, a := range ioc.Accounts {
+			fmt.Fprintf(&b, " Compromised account: %s.", a)
+		}
 		// Worst case: the report repeats every distinct attacker-written
 		// field verbatim.
 		seen := map[string]bool{}

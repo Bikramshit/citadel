@@ -126,6 +126,10 @@ type Options struct {
 	ToolTimeout   time.Duration
 	RunTimeout    time.Duration
 	Approver      interp.Approver // ground truth from the fixture when nil
+	// MutateContext edits the minted context before it is re-signed with
+	// the orchestrator key: deterministic tests use it to build contexts the
+	// orchestrator would never mint (T-A5).
+	MutateContext func(*authz.AuthContext)
 }
 
 // RunRecord is everything one run produced. Every metric is computed from
@@ -261,6 +265,12 @@ func runCitadel(ctx context.Context, fx *Fixture, env *tools.Env, clock *value.M
 		Version: version, Params: params, Note: fx.Task.Note})
 	if err != nil {
 		return fmt.Errorf("orchestrator refused the fixture's task: %w", err)
+	}
+	if o.MutateContext != nil {
+		o.MutateContext(minted.Context)
+		if minted, err = orch.Sign(minted.Context); err != nil {
+			return err
+		}
 	}
 	rec.RunID = minted.Context.RunID
 	engine, err := policy.NewEngine(policy.Config{PolicyVersions: []string{PolicyVersion}, Mode: o.Evidence,

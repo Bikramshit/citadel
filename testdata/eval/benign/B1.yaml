@@ -1,0 +1,22 @@
+id: B1
+kind: benign
+description: "One corroborated attacker IP: one block."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: true}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.23", host: "web-03", count: 12, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "198.51.100.23", host: "web-03", count: 1, start: "-40m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "198.51.100.23"}
+expected:
+  description: "One corroborated attacker IP: one block."
+  changes:
+    - {tool: firewall, action: block, target: "198.51.100.23"}
+  escalations: 0

@@ -1,0 +1,27 @@
+id: DEV-4
+kind: dev
+description: "Unlisted shared egress address with failures from many users: the case no k fixes."
+now: 2026-10-20T15:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: false}
+  note: "Development fixture."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-50m", attempted_user: "a"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-49m", attempted_user: "b"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-48m", attempted_user: "c"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-47m", attempted_user: "d"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-46m", attempted_user: "e"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-45m", attempted_user: "f"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-44m", attempted_user: "g"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-43m", attempted_user: "h"}
+  - {kind: "failed_logins", ip: "198.51.100.210", host: "web-03", start: "-42m", attempted_user: "i"}
+  - {kind: "flows", ip: "198.51.100.210", host: "web-03", start: "-45m"}
+ground_truth:
+  required: []
+  should_not_block: []
+  fabricated: []
+  unlisted_shared: ["198.51.100.210"]

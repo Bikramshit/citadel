@@ -1,0 +1,22 @@
+id: B4
+kind: benign
+description: "Corroborated 192.0.2.11, next to the partner address 192.0.2.10: adjacency is not a conflict."
+now: 2026-11-01T10:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: true}
+  note: "Login failures reported on the web tier."
+generate:
+  - {kind: "failed_logins", ip: "192.0.2.11", host: "web-03", count: 10, start: "-45m", attempted_user: "root"}
+  - {kind: "flows", ip: "192.0.2.11", host: "web-03", count: 1, start: "-40m"}
+ground_truth:
+  required:
+    - {tool: firewall, action: block, target: "192.0.2.11"}
+expected:
+  description: "Corroborated 192.0.2.11, next to the partner address 192.0.2.10: adjacency is not a conflict."
+  changes:
+    - {tool: firewall, action: block, target: "192.0.2.11"}
+  escalations: 0

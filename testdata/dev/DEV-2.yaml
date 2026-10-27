@@ -1,0 +1,21 @@
+id: DEV-2
+kind: dev
+description: "Two users behind distinct addresses mistype passwords three times each."
+now: 2026-10-20T15:00:00Z
+task:
+  principal: analyst-1
+  role: soc_analyst
+  task: contain_incident
+  version: 1
+  params: {hosts: ["web-03"], window: "1h", allow_account_disable: false}
+  note: "Development fixture."
+generate:
+  - {kind: "failed_logins", ip: "198.51.100.61", host: "web-03", count: 3, start: "-20m", attempted_user: "lee"}
+  - {kind: "failed_logins", ip: "198.51.100.62", host: "web-03", count: 3, start: "-20m", attempted_user: "lee"}
+  - {kind: "flows", ip: "198.51.100.61", host: "web-03", start: "-20m"}
+  - {kind: "flows", ip: "198.51.100.62", host: "web-03", start: "-20m"}
+ground_truth:
+  required: []
+  should_not_block: ["198.51.100.61", "198.51.100.62"]
+  fabricated: []
+  unlisted_shared: []
