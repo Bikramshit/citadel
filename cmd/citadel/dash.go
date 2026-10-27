@@ -1,0 +1,351 @@
+package main
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/subtle"
+	"encoding/hex"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"io"
+	"io/fs"
+	"log/slog"
+	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"path/filepath"
+	"slices"
+	"strings"
+	"sync"
+	"time"
+
+	"citadel/internal/events"
+	"citadel/internal/harness"
+	"citadel/internal/interp"
+	"citadel/internal/policy"
+	"citadel/internal/value"
+	"citadel/web"
+)
+
+// runSummary is one recorded run as the dashboard lists it.
+type runSummary struct {
+	ID            string           `json:"id"`
+	Fixture       string           `json:"fixture"`
+	Kind          string           `json:"kind"`
+	Goal          string           `json:"goal"`
+	Style         string           `json:"style"`
+	Config        string           `json:"config"`
+	Trial         int              `json:"trial"`
+	Impl          string           `json:"impl"`
+	AttackSuccess bool             `json:"attack_success"`
+	Unauthorized  int              `json:"unauthorized"`
+	Completed     bool             `json:"completed"`
+	Escalations   int              `json:"escalations"`
+	Uncertain     int              `json:"uncertain"`
+	Failed        bool             `json:"failed"`
+	Valid         bool             `json:"valid"`
+	LatencyMs     float64          `json:"latency_ms"`
+	Diff          []harness.Change `json:"diff"`
+}
+
+type runDir struct {
+	Dir      string       `json:"dir"`
+	Meta     harness.Meta `json:"meta"`
+	TablesMD string       `json:"tables_md"`
+	Runs     []runSummary `json:"runs"`
+}
+
+type dash struct {
+	root     *os.Root
+	runsDir  string
+	repo     string
+	log      *slog.Logger
+	hub      *events.Hub
+	token    string
+	approver *interp.ChannelApprover
+	opts     harness.Options
+	fixtures map[string]*harness.Fixture
+
+	mu        sync.Mutex
+	principal string
+}
+
+func cmdDash(ctx context.Context, log *slog.Logger, args []string) error {
+	fset := flag.NewFlagSet("dash", flag.ContinueOnError)
+	runs := fset.String("runs", "runs", "directory of recorded runs")
+	listen := fset.String("listen", "127.0.0.1:8080", "listen address (127.0.0.1 only)")
+	repo := fset.String("root", ".", "repository root")
+	if err := fset.Parse(args); err != nil {
+		return errUsage
+	}
+	if err := os.MkdirAll(*runs, 0o750); err != nil {
+		return err
+	}
+	root, err := os.OpenRoot(*runs)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+	var tok [32]byte
+	if _, err := rand.Read(tok[:]); err != nil {
+		return err
+	}
+	d := &dash{root: root, runsDir: *runs, repo: *repo, log: log, hub: events.NewHub(), token: hex.EncodeToString(tok[:]), fixtures: map[string]*harness.Fixture{}}
+	d.approver = interp.NewChannelApprover(value.SystemClock{}, 10*time.Minute, nil)
+	cat, baseInv, err := loadCatalogAndInventory(filepath.Join(*repo, "configs/catalog.yaml"), filepath.Join(*repo, "configs/inventory.yaml"))
+	if err != nil {
+		return err
+	}
+	th := harness.DefaultThresholds()
+	if f, err := harness.LoadThresholds(filepath.Join(*repo, "configs/thresholds.yaml")); err == nil {
+		th = f.Thresholds()
+	}
+	d.opts = harness.Options{Catalog: cat, BaseInventory: baseInv, Thresholds: th, Evidence: policy.EvidenceOn,
+		Models: harness.Scripted(nil), Baseline: harness.ScriptedBaseline(), Rand: rand.Reader}
+	d.fixtures["M1"] = harness.M1Fixture()
+	if fxs, err := harness.LoadFixtures(filepath.Join(*repo, "testdata/eval")); err == nil {
+		for _, f := range fxs {
+			d.fixtures[f.ID] = f
+		}
+	}
+	ln, err := listenLoopback(*listen)
+	if err != nil {
+		return err
+	}
+	return serve(ctx, log, ln, d.routes(), 30*time.Second) // SSE extends its own write deadline per message
+}
+
+func (d *dash) routes() http.Handler {
+	mux := http.NewServeMux()
+	static, _ := fs.Sub(web.Files, ".")
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
+		secureHeaders(w)
+		b, err := fs.ReadFile(static, "index.html")
+		if err != nil {
+			http.Error(w, "dashboard missing", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(b)
+	})
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		secureHeaders(w)
+		http.FileServerFS(static).ServeHTTP(w, r)
+	})))
+	mux.HandleFunc("GET /api/runs", d.listRuns)
+	mux.HandleFunc("GET /api/runs/{id...}", d.replay)
+	mux.HandleFunc("GET /runs/{id...}", d.replay)
+	mux.HandleFunc("GET /api/fixtures", d.listFixtures)
+	mux.HandleFunc("GET /api/approvals", d.approvals)
+	mux.HandleFunc("GET /events", d.events)
+	mux.HandleFunc("POST /run", d.startRun)
+	mux.HandleFunc("POST /approve", d.approve)
+	return mux
+}
+
+func secureHeaders(w http.ResponseWriter) {
+	w.Header().Set("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Referrer-Policy", "no-referrer")
+}
+
+func (d *dash) readFile(rel string, limit int64) ([]byte, error) {
+	f, err := d.root.Open(rel)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(io.LimitReader(f, limit))
+}
+
+func (d *dash) listRuns(w http.ResponseWriter, r *http.Request) {
+	entries, err := fs.ReadDir(d.root.FS(), ".")
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	var dirs []runDir
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		mb, err := d.readFile(path.Join(e.Name(), "meta.json"), 1<<20)
+		if err != nil {
+			continue
+		}
+		var rd runDir
+		rd.Dir = e.Name()
+		if json.Unmarshal(mb, &rd.Meta) != nil {
+			continue
+		}
+		if tb, err := d.readFile(path.Join(e.Name(), "tables.md"), 4<<20); err == nil {
+			rd.TablesMD = string(tb)
+		}
+		recs, err := harness.ReadRecords(filepath.Join(d.runsDir, e.Name()))
+		if err != nil {
+			continue
+		}
+		for _, rec := range recs {
+			m := rec.Metrics
+			rd.Runs = append(rd.Runs, runSummary{ID: fmt.Sprintf("%s/%s/%s/trial-%d", e.Name(), rec.Config, rec.Fixture, rec.Trial),
+				Fixture: rec.Fixture, Kind: rec.Kind, Goal: rec.Goal, Style: rec.Style, Config: rec.Config, Trial: rec.Trial, Impl: rec.Impl,
+				AttackSuccess: m.AttackSuccess, Unauthorized: m.Unauthorized, Completed: m.Completed, Escalations: m.Escalations,
+				Uncertain: m.Uncertain, Failed: m.Failed, Valid: rec.Valid(), LatencyMs: m.LatencyMs, Diff: rec.Diff})
+		}
+		dirs = append(dirs, rd)
+	}
+	slices.SortFunc(dirs, func(a, b runDir) int { return strings.Compare(b.Dir, a.Dir) })
+	if dirs == nil {
+		dirs = []runDir{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"dirs": dirs})
+}
+
+// replay returns a recorded run's event log. The ID is a path inside the
+// runs directory, opened through os.Root so it cannot escape it.
+func (d *dash) replay(w http.ResponseWriter, r *http.Request) {
+	id, err := url.PathUnescape(r.PathValue("id"))
+	if err != nil || id == "" || strings.Contains(id, "..") || strings.HasPrefix(id, "/") {
+		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: run id", value.ErrSchema))
+		return
+	}
+	rel := path.Join(id, "events.jsonl")
+	if path.Base(id) == "trace.jsonl" || strings.HasSuffix(id, ".jsonl") {
+		rel = id
+	}
+	if _, err := d.root.Stat(rel); err != nil {
+		if _, err2 := d.root.Stat(path.Join(id, "trace.jsonl")); err2 == nil {
+			rel = path.Join(id, "trace.jsonl")
+		} else {
+			writeError(w, http.StatusNotFound, fmt.Errorf("no recorded run %q", value.Truncate(id)))
+			return
+		}
+	}
+	evs, err := events.ReadFile(filepath.Join(d.runsDir, filepath.FromSlash(rel)))
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if evs == nil {
+		evs = []events.Event{}
+	}
+	writeJSON(w, http.StatusOK, evs)
+}
+
+func (d *dash) listFixtures(w http.ResponseWriter, r *http.Request) {
+	var out []map[string]string
+	ids := make([]string, 0, len(d.fixtures))
+	for id := range d.fixtures {
+		ids = append(ids, id)
+	}
+	slices.Sort(ids)
+	for _, id := range ids {
+		f := d.fixtures[id]
+		out = append(out, map[string]string{"id": f.ID, "kind": f.Kind, "goal": f.Goal, "style": f.Style, "description": f.Description})
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"fixtures": out})
+}
+
+func (d *dash) approvals(w http.ResponseWriter, r *http.Request) {
+	d.mu.Lock()
+	principal := d.principal
+	d.mu.Unlock()
+	pending := d.approver.List()
+	if pending == nil {
+		pending = []interp.ApprovalRequest{}
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"principal": principal, "token": d.token, "pending": pending})
+}
+
+func (d *dash) events(w http.ResponseWriter, r *http.Request) {
+	ch, cancel := d.hub.Subscribe()
+	defer cancel()
+	out := make(chan any)
+	go func() {
+		defer close(out)
+		for e := range ch {
+			select {
+			case out <- e:
+			case <-r.Context().Done():
+				return
+			}
+		}
+	}()
+	sse(w, r, out)
+}
+
+func (d *dash) checkToken(r *http.Request) bool {
+	if o := r.Header.Get("Origin"); o != "" && o != "http://"+r.Host {
+		return false
+	}
+	return subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Citadel-Token")), []byte(d.token)) == 1
+}
+
+// startRun runs a fixture live with the scripted stand-ins, streaming its
+// events. Escalations wait for the principal's answer on the approval card.
+func (d *dash) startRun(w http.ResponseWriter, r *http.Request) {
+	if !d.checkToken(r) {
+		writeError(w, http.StatusForbidden, fmt.Errorf("%w: missing or wrong token", value.ErrNotPrincipal))
+		return
+	}
+	var req struct {
+		Fixture string `json:"fixture"`
+		Config  string `json:"config"`
+	}
+	if err := readJSON(w, r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	fx, ok := d.fixtures[req.Fixture]
+	if !ok || !slices.Contains(harness.Configs(), req.Config) {
+		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: unknown fixture or configuration", value.ErrConfig))
+		return
+	}
+	stamp := time.Now().UTC().Format("20060102T150405.000Z")
+	live := path.Join("live", stamp+"-"+req.Config+"-"+fx.ID)
+	o := d.opts
+	o.Config, o.Trial, o.Hub = req.Config, 1, d.hub
+	o.EventsPath = filepath.Join(d.runsDir, filepath.FromSlash(live), "events.jsonl")
+	o.Approver = d.approver
+	if fx.ID == "M1" {
+		o.Evidence = policy.EvidenceOff
+	}
+	d.mu.Lock()
+	d.principal = fx.Task.Principal
+	d.mu.Unlock()
+	go func() {
+		rec := harness.Run(context.Background(), fx, o)
+		d.log.Info("live run finished", "fixture", fx.ID, "config", req.Config, "run", rec.RunID, "valid", rec.Valid(), "crash", value.Truncate(rec.Crash))
+	}()
+	writeJSON(w, http.StatusOK, map[string]string{"run_id": live})
+}
+
+func (d *dash) approve(w http.ResponseWriter, r *http.Request) {
+	if !d.checkToken(r) {
+		writeError(w, http.StatusForbidden, fmt.Errorf("%w: missing or wrong token", value.ErrNotPrincipal))
+		return
+	}
+	var req struct {
+		Key      string `json:"key"`
+		Approver string `json:"approver"`
+		Yes      bool   `json:"yes"`
+	}
+	if err := readJSON(w, r, &req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+	var k policy.ApprovalKey
+	b, err := hex.DecodeString(req.Key)
+	if err != nil || len(b) != len(k) {
+		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: key", value.ErrSchema))
+		return
+	}
+	copy(k[:], b)
+	if err := d.approver.Answer(k, req.Approver, req.Yes); err != nil {
+		writeError(w, http.StatusForbidden, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]bool{"ok": true})
+}

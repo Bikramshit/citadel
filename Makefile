@@ -38,7 +38,7 @@ build:
 check: fmt-check vet staticcheck govulncheck test concurrency traceability coverage
 
 fmt-check:
-	@out="$$(gofmt -l $$(git ls-files '*.go' 2>/dev/null || find . -name '*.go' -not -path './runs/*'))"; \
+	@out="$$(gofmt -l $$(find . -name '*.go' -not -path './runs/*' -not -path './.git/*'))"; \
 	if [ -n "$$out" ]; then echo "gofmt needed:"; echo "$$out"; exit 1; fi
 
 vet:
