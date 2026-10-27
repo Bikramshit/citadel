@@ -32,6 +32,15 @@ func (k IdemKey) String() string { return hex.EncodeToString(k[:]) }
 // MarshalText writes the key in hex.
 func (k IdemKey) MarshalText() ([]byte, error) { return []byte(k.String()), nil }
 
+// UnmarshalText parses a hex key, for replaying event logs.
+func (k *IdemKey) UnmarshalText(b []byte) error {
+	if len(b) != 64 {
+		return fmt.Errorf("idempotency key: want 64 hex characters")
+	}
+	_, err := hex.Decode(k[:], b)
+	return err
+}
+
 // IdemPrefix is the domain prefix of idempotency keys.
 const IdemPrefix = "citadel-idem-v1\x00"
 
@@ -106,6 +115,17 @@ func (s AttemptState) String() string {
 
 // MarshalText writes the state's name.
 func (s AttemptState) MarshalText() ([]byte, error) { return []byte(s.String()), nil }
+
+// UnmarshalText parses a state name, for replaying event logs.
+func (s *AttemptState) UnmarshalText(b []byte) error {
+	for _, c := range []AttemptState{Attempted, Succeeded, Failed, Uncertain} {
+		if c.String() == string(b) {
+			*s = c
+			return nil
+		}
+	}
+	return fmt.Errorf("unknown attempt state %q", value.Truncate(string(b)))
+}
 
 // Attempt records one admitted tool call. Only Admit creates attempts that
 // tools accept: the issuer field is unexported and set nowhere else.
@@ -299,7 +319,7 @@ func (rs *RunState) Admit(c *policy.CallCtx, d policy.Decision, now time.Time) (
 			return nil, d // caller requests approval and pauses; timeout means Deny
 		}
 		ap.State = policy.Used
-		d.Reason += "; approved once by " + ap.Approver
+		d = policy.Decision{Verdict: policy.Allow, Rule: d.Rule, Group: d.Group, Reason: d.Reason + "; approved once by " + ap.Approver}
 	}
 	rs.sensitive++
 	rs.perOp[c.Op]++

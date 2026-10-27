@@ -47,6 +47,17 @@ func (v Verdict) String() string {
 // MarshalText writes the verdict's name.
 func (v Verdict) MarshalText() ([]byte, error) { return []byte(v.String()), nil }
 
+// UnmarshalText parses a verdict name, for replaying event logs.
+func (v *Verdict) UnmarshalText(b []byte) error {
+	for _, c := range []Verdict{Allow, Escalate, Deny} {
+		if c.String() == string(b) {
+			*v = c
+			return nil
+		}
+	}
+	return fmt.Errorf("unknown verdict %q", value.Truncate(string(b)))
+}
+
 // Decision is one rule's result, or the final result of a call.
 type Decision struct {
 	Verdict  Verdict          `json:"verdict"`
@@ -270,9 +281,10 @@ func ruleA1(c *CallCtx) (Decision, bool) {
 	return pass("matched " + m[0].String())
 }
 
-// A2: deny if the target fails strict parsing or the matched scope.
+// A2: deny if the target or host fails strict parsing or the matched
+// scope.
 func ruleA2(c *CallCtx) (Decision, bool) {
-	if c.Target == nil {
+	if c.Target == nil && c.Op.Tool != "logs" {
 		return notApplicable()
 	}
 	caps := authz.MatchingCaps(c.Eff, c.Op)
@@ -283,7 +295,7 @@ func ruleA2(c *CallCtx) (Decision, bool) {
 	for _, cp := range caps {
 		reason := scopeViolation(c, cp.Scope)
 		if reason == "" {
-			return pass("target " + c.Target.Canonical() + " inside scope " + cp.Scope.String())
+			return pass("inside scope " + cp.Scope.String())
 		}
 		last = reason
 	}
@@ -291,7 +303,10 @@ func ruleA2(c *CallCtx) (Decision, bool) {
 }
 
 func scopeViolation(c *CallCtx, s authz.Scope) string {
-	t := *c.Target
+	var t value.Value
+	if c.Target != nil {
+		t = *c.Target
+	}
 	switch c.Op.Tool {
 	case "firewall":
 		a, err := value.ParseIPv4(t.Canonical())
@@ -314,9 +329,13 @@ func scopeViolation(c *CallCtx, s authz.Scope) string {
 			return "account kind " + kind + " outside scope"
 		}
 	case "logs":
-		hosts := []value.Value{t}
-		if t.Kind() == value.KindList {
-			hosts = t.Elems()
+		h, ok := c.Args["host"]
+		if !ok {
+			return "no host named"
+		}
+		hosts := []value.Value{h}
+		if h.Kind() == value.KindList {
+			hosts = h.Elems()
 		}
 		if len(hosts) == 0 {
 			return "no host named"

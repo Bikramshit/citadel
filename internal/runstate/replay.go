@@ -49,11 +49,29 @@ type Prior struct {
 // either way. A retransmission of an accepted envelope is answered with
 // ERR_REPLAY and the recorded acceptance; one of a rejected envelope gets its
 // recorded code again.
-func (p Prior) Result() error {
-	if p.State == Accepted {
-		return fmt.Errorf("%w: identical retransmission; recorded result: accepted; nothing imported", value.ErrReplay)
+func (p Prior) Result() error { return &RecordedError{Prior: p} }
+
+// RecordedError answers an identical retransmission with the recorded
+// result. It wraps ERR_REPLAY for an accepted envelope and the recorded
+// reject code otherwise.
+type RecordedError struct {
+	Prior Prior
+}
+
+// Error describes the recorded result.
+func (e *RecordedError) Error() string {
+	if e.Prior.State == Accepted {
+		return string(value.ErrReplay) + ": identical retransmission; recorded result: accepted; nothing imported"
 	}
-	return fmt.Errorf("%w: identical retransmission; recorded result: rejected", value.Code(p.Code))
+	return e.Prior.Code + ": identical retransmission; recorded result: rejected"
+}
+
+// Unwrap returns the code the retransmission is answered with.
+func (e *RecordedError) Unwrap() error {
+	if e.Prior.State == Accepted {
+		return value.ErrReplay
+	}
+	return value.Code(e.Prior.Code)
 }
 
 // ReplayTable makes retransmissions idempotent on the receiver and keeps

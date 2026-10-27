@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -17,6 +18,15 @@ func (k ApprovalKey) String() string { return hex.EncodeToString(k[:]) }
 
 // MarshalText writes the key in hex.
 func (k ApprovalKey) MarshalText() ([]byte, error) { return []byte(k.String()), nil }
+
+// UnmarshalText parses a hex key, for replaying event logs.
+func (k *ApprovalKey) UnmarshalText(b []byte) error {
+	if len(b) != 64 {
+		return fmt.Errorf("approval key: want 64 hex characters")
+	}
+	_, err := hex.Decode(k[:], b)
+	return err
+}
 
 // ApprovalPrefix is the domain prefix of approval keys.
 const ApprovalPrefix = "citadel-approval-v1\x00"

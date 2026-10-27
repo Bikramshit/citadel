@@ -103,13 +103,18 @@ var static = map[string][]authz.Cap{
 
 func (w *world) call(agent string, op authz.Op, target *value.Value, extra map[string]value.Value) *policy.CallCtx {
 	ops, _ := w.task.Ops(agent, w.ac.Params)
-	c := &policy.CallCtx{RunID: w.ac.RunID, Agent: agent, Op: op, Target: target, Args: map[string]value.Value{},
+	c := &policy.CallCtx{RunID: w.ac.RunID, Agent: agent, Op: op, Args: map[string]value.Value{},
 		PC: label.New(label.Runtime()), Eff: authz.Effective(static[agent], w.ac.Grants[agent], ops, nil),
 		Ctx: w.ac, CtxHash: [32]byte{1}, CtxVerified: true, Task: w.task, Inv: w.env.Inventory(),
 		Evidence: w.env.Evidence(), Trust: label.DefaultTrust(), Now: now}
 	if spec, ok := authz.Spec(op); ok && target != nil {
-		c.TargetArg = spec.TargetArg()
-		c.Args[c.TargetArg] = *target
+		if spec.TargetArg() == "" {
+			c.Args["host"] = *target // logs.read: the host is a scope argument, not a target
+		} else {
+			c.TargetArg = spec.TargetArg()
+			c.Target = target
+			c.Args[c.TargetArg] = *target
+		}
 	}
 	for k, v := range extra {
 		c.Args[k] = v

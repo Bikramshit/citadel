@@ -11,6 +11,7 @@ type ArgSpec struct {
 	Name   string
 	Types  []value.Type // accepted types, first is canonical
 	Target bool         // the resource the call acts on; I2 applies
+	Host   bool         // a host the call reads from; A2 checks it against the scope
 }
 
 // Accepts reports whether t is one of the argument's types.
@@ -83,7 +84,7 @@ func Spec(op Op) (ToolSpec, bool) {
 	switch op {
 	case Op{"logs", "read"}:
 		return ToolSpec{Op: op, Args: []ArgSpec{
-			{Name: "host", Types: []value.Type{host, value.ListOf(host)}, Target: true},
+			{Name: "host", Types: []value.Type{host, value.ListOf(host)}, Host: true},
 			{Name: "window", Types: []value.Type{value.Scalar(value.KindDuration)}},
 		}, Output: value.ListOf(value.Scalar(value.KindRecord))}, true
 	case Op{"inventory", "read"}:

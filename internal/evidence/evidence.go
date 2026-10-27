@@ -179,6 +179,17 @@ func (v EvidenceVerdict) String() string {
 // MarshalText writes the verdict's name.
 func (v EvidenceVerdict) MarshalText() ([]byte, error) { return []byte(v.String()), nil }
 
+// UnmarshalText parses a verdict name, for replaying event logs.
+func (v *EvidenceVerdict) UnmarshalText(b []byte) error {
+	for _, c := range []EvidenceVerdict{EvAbsent, EvInsufficient, EvCorroborated, EvConflict} {
+		if c.String() == string(b) {
+			*v = c
+			return nil
+		}
+	}
+	return fmt.Errorf("unknown evidence verdict %q", string(b))
+}
+
 // Thresholds are the tuned evidence parameters, frozen in thresholds.yaml.
 type Thresholds struct {
 	K        int // observations required
