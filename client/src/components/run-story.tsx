@@ -32,7 +32,7 @@ function Mini({ children, className }: { children: React.ReactNode; className?: 
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.25 }}
-      className={cx("rounded-xl border border-line bg-surface p-3 text-[12.5px]", className)}
+      className={cx("sheen rounded-xl border border-line bg-surface p-3 text-[12.5px] shadow-card-sm", className)}
     >
       {children}
     </motion.div>

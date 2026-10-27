@@ -41,7 +41,7 @@ function Cell({ run, fixture }: { run?: RunSummary; fixture: string }) {
       href={`/runs/view?id=${encodeURIComponent(run.id)}&fixture=${encodeURIComponent(fixture)}`}
       title={`${run.fixture} · ${run.config}: ${label}${run.unauthorized ? ` · ${run.unauthorized} unauthorized change(s)` : ""}${run.valid ? "" : " · invariant violation"}`}
       className={cx(
-        "relative flex h-11 items-center justify-center gap-1.5 rounded-lg text-[12px] font-medium ring-1 transition",
+        "relative flex h-11 items-center justify-center gap-1.5 rounded-lg text-[12px] font-medium ring-1 transition hover:-translate-y-0.5 hover:shadow-card-sm",
         tone,
         !run.valid && "outline-2 outline-critical",
       )}

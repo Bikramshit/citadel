@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { GitCompareArrows, Grid3x3, LayoutDashboard, Monitor, Moon, Radio, ScrollText, Sun } from "lucide-react";
+import { MotionConfig } from "motion/react";
 import { fetchFixtures, useLoad } from "@/lib/api";
 import { Logo } from "./badges";
 import { cx } from "./ui";
@@ -164,7 +165,10 @@ export function Shell({ children }: { children: ReactNode }) {
         ))}
       </nav>
       <main className="lg:pl-60">
-        <div className="mx-auto max-w-[1280px] px-4 pb-24 pt-8 sm:px-6 lg:px-10 lg:pt-12">{children}</div>
+        {/* Honor the OS reduced-motion setting: animations keep their fades and drop their movement. */}
+        <MotionConfig reducedMotion="user">
+          <div className="mx-auto max-w-[1280px] px-4 pb-24 pt-8 sm:px-6 lg:px-10 lg:pt-12">{children}</div>
+        </MotionConfig>
       </main>
     </div>
   );

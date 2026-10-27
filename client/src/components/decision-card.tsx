@@ -50,8 +50,8 @@ export function DecisionCard({ view, compact }: { view: CallView; compact?: bool
   return (
     <article
       className={cx(
-        "rounded-xl border bg-surface p-3.5 transition",
-        view.goal ? "border-untrusted/50 shadow-[0_0_0_3px_var(--untrusted-soft)]" : "border-line",
+        "sheen rounded-xl border bg-surface p-3.5 shadow-card-sm transition",
+        view.goal ? "border-untrusted/50 ring-3 ring-untrusted-soft" : "border-line",
       )}
     >
       <header className="flex flex-wrap items-start justify-between gap-2">

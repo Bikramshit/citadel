@@ -54,7 +54,7 @@ function ApprovalCard({ req, principal, token, onDone }: { req: ApprovalRequest;
       initial={{ opacity: 0, scale: 0.97, y: 10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
-      className="relative overflow-hidden rounded-2xl border border-warning/50 bg-surface shadow-card"
+      className="sheen relative overflow-hidden rounded-2xl border border-warning/50 bg-surface shadow-lift"
     >
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-warning to-serious" />
       <div className="p-5">
