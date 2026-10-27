@@ -146,8 +146,10 @@ func Wilson(k, n int) (lo, hi float64) {
 
 // Rate is a proportion with its sample size and 95% Wilson interval.
 type Rate struct {
-	K, N   int
-	Lo, Hi float64
+	K  int     `json:"k"`
+	N  int     `json:"n"`
+	Lo float64 `json:"lo"`
+	Hi float64 `json:"hi"`
 }
 
 func rate(k, n int) Rate {
@@ -165,8 +167,8 @@ func (r Rate) String() string {
 
 // Mean is an average with its sample size.
 type Mean struct {
-	Sum float64
-	N   int
+	Sum float64 `json:"sum"`
+	N   int     `json:"n"`
 }
 
 // String renders "mean (n = N)".
@@ -179,20 +181,21 @@ func (m Mean) String() string {
 
 // Row is one configuration's results.
 type Row struct {
-	Config              string
-	AttackSuccess       Rate
-	Unauthorized        Mean
-	RunsWithUnauth      Rate
-	CompletionBenign    Rate
-	CompletionAttack    Rate
-	FalseBlocks         Rate
-	EscalationsBenign   Mean
-	AttackerEscalations Mean
-	Uncertain           Mean
-	Laundered           Rate
-	P50, P95            float64
-	LatencyN            int
-	Failed              Rate
+	Config              string  `json:"config"`
+	AttackSuccess       Rate    `json:"attack_success"`
+	Unauthorized        Mean    `json:"unauthorized"`
+	RunsWithUnauth      Rate    `json:"runs_with_unauthorized"`
+	CompletionBenign    Rate    `json:"completion_benign"`
+	CompletionAttack    Rate    `json:"completion_attack"`
+	FalseBlocks         Rate    `json:"false_blocks"`
+	EscalationsBenign   Mean    `json:"escalations_benign"`
+	AttackerEscalations Mean    `json:"attacker_escalations"`
+	Uncertain           Mean    `json:"uncertain"`
+	Laundered           Rate    `json:"laundered"`
+	P50                 float64 `json:"p50_ms"`
+	P95                 float64 `json:"p95_ms"`
+	LatencyN            int     `json:"latency_n"`
+	Failed              Rate    `json:"failed"`
 }
 
 // Summarize builds one row per configuration from run records of one

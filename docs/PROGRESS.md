@@ -46,7 +46,7 @@ Phase 4's "B1 completes with a real model" and Phase 9's full model measurement 
 | 2 | Done | Every rule (A0 to A5, I1 to I3, F0, F1, F3, E1, E2, C1, D0) passes a positive and a negative test; L3, L4, and CT3 pass under `-race` |
 | 3 | Done | T-A1 to T-A5, T-A7, L5, L7, CT4, CT5, and X1 to X3 pass with the invariant checker active; `TestInvariantCheckerDetectsEachInvariant` shows the checker catches each of the 13 invariants |
 | 4 | Done, except model adapters (gate) | D1, D2, D3, and D5 pass with scripted models; the gate status is recorded |
-| 5 | Done | P1 to P18, D4, T-A6, L6, CT1, CT2, CT6, and CT7 pass; `TestM1` passes; `citadel demo m1` passes all seven elements across two OS processes over HTTP; the trace is committed in `runs/m1/` |
+| 5 | Done | Each fuzz target ran 10 minutes without a failure; P1 to P18, D4, T-A6, L6, CT1, CT2, CT6, and CT7 pass; `TestM1` passes; `citadel demo m1` passes all seven elements across two OS processes over HTTP; the trace is committed in `runs/m1/` |
 | 6 | Done | E-T1 to E-T13 pass; `configs/thresholds.yaml` was committed (9f7185e) before any evaluation run; scripted B1 to B12 match their expected outcomes, B12's unwarranted block included |
 | 7 | Done (scripted) | 21 attack and 12 benign fixtures with goal predicates; a one-trial run across all four configurations generated a complete table with 0 crashes and 0 invariant violations |
 | 8 | Done | The dashboard replays recorded runs, streams live scripted runs, and serves an approval card for the principal |
@@ -54,7 +54,7 @@ Phase 4's "B1 completes with a real model" and Phase 9's full model measurement 
 
 ### Fuzzing
 
-`make fuzz` runs every target for FUZZTIME (default 10 minutes); CI runs each for 30 seconds. Local results for this commit are recorded under "Verification log" below. The specification asks for 10 minutes per target in Phase 5. Any target not yet run for that long is listed there as outstanding.
+`make fuzz` runs every target for FUZZTIME (default 10 minutes); CI runs each for 30 seconds. All nine targets ran 10 minutes each without a failure: about 294 million executions in total. The log is in [runs/results/fuzz.txt](../runs/results/fuzz.txt).
 
 ## Verification log
 
@@ -85,7 +85,7 @@ Deterministic core, before any model run:
 - [x] Run state: CT1 to CT7 pass under `go test -race -count=50`
 - [x] Tool outcomes: X1 to X3 pass; invariants 8 to 11 hold
 - [x] Handoff: P1 to P18, T-A6, and L6 pass
-- [ ] Each fuzz target ran 10 minutes without a failure (see Fuzzing)
+- [x] Each fuzz target ran 10 minutes without a failure (see Fuzzing)
 - [x] Milestone M1: `TestM1` passes and the `citadel demo m1` trace is committed
 - [x] Evidence: E-T1 to E-T13 pass; `thresholds.yaml` committed from development fixtures only
 - [x] The invariant checker runs in every harness test, and all 13 invariants hold

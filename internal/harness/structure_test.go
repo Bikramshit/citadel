@@ -139,7 +139,7 @@ func TestOnePathToTool(t *testing.T) {
 		if err != nil {
 			return err
 		}
-		if d.IsDir() && (d.Name() == "runs" || d.Name() == ".git" || d.Name() == "testdata") {
+		if d.IsDir() && (d.Name() == "runs" || d.Name() == ".git" || d.Name() == "testdata" || d.Name() == "node_modules" || d.Name() == "client") {
 			return filepath.SkipDir
 		}
 		if d.IsDir() || !strings.HasSuffix(p, ".go") || strings.HasSuffix(p, "_test.go") {

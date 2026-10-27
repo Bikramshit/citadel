@@ -36,6 +36,7 @@ type runSummary struct {
 	Goal          string           `json:"goal"`
 	Style         string           `json:"style"`
 	Config        string           `json:"config"`
+	Evidence      string           `json:"evidence"`
 	Trial         int              `json:"trial"`
 	Impl          string           `json:"impl"`
 	AttackSuccess bool             `json:"attack_success"`
@@ -50,10 +51,17 @@ type runSummary struct {
 }
 
 type runDir struct {
-	Dir      string       `json:"dir"`
-	Meta     harness.Meta `json:"meta"`
-	TablesMD string       `json:"tables_md"`
-	Runs     []runSummary `json:"runs"`
+	Dir      string        `json:"dir"`
+	Meta     harness.Meta  `json:"meta"`
+	TablesMD string        `json:"tables_md"`
+	Summary  []implSummary `json:"summary"` // computed by harness.Summarize, one block per implementation
+	Runs     []runSummary  `json:"runs"`
+}
+
+// implSummary is one implementation's per-configuration results.
+type implSummary struct {
+	Impl string        `json:"impl"`
+	Rows []harness.Row `json:"rows"`
 }
 
 type dash struct {
@@ -138,6 +146,7 @@ func (d *dash) routes() http.Handler {
 	mux.HandleFunc("GET /api/runs/{id...}", d.replay)
 	mux.HandleFunc("GET /runs/{id...}", d.replay)
 	mux.HandleFunc("GET /api/fixtures", d.listFixtures)
+	mux.HandleFunc("GET /api/m1", d.m1)
 	mux.HandleFunc("GET /api/approvals", d.approvals)
 	mux.HandleFunc("GET /events", d.events)
 	mux.HandleFunc("POST /run", d.startRun)
@@ -160,47 +169,80 @@ func (d *dash) readFile(rel string, limit int64) ([]byte, error) {
 	return io.ReadAll(io.LimitReader(f, limit))
 }
 
-func (d *dash) listRuns(w http.ResponseWriter, r *http.Request) {
-	entries, err := fs.ReadDir(d.root.FS(), ".")
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err)
-		return
-	}
-	var dirs []runDir
-	for _, e := range entries {
-		if !e.IsDir() {
-			continue
+// runDirs finds every directory under the runs root, up to three levels
+// deep, that holds a harness run (meta.json), sorted newest first.
+func (d *dash) runDirs() []string {
+	var dirs []string
+	fs.WalkDir(d.root.FS(), ".", func(p string, e fs.DirEntry, err error) error {
+		if err != nil {
+			return nil
 		}
-		mb, err := d.readFile(path.Join(e.Name(), "meta.json"), 1<<20)
+		depth := strings.Count(p, "/")
+		if e.IsDir() && p != "." && depth > 2 {
+			return fs.SkipDir
+		}
+		if !e.IsDir() && e.Name() == "meta.json" {
+			dirs = append(dirs, path.Dir(p))
+		}
+		return nil
+	})
+	slices.SortFunc(dirs, func(a, b string) int { return strings.Compare(path.Base(b), path.Base(a)) })
+	return dirs
+}
+
+func (d *dash) listRuns(w http.ResponseWriter, r *http.Request) {
+	dirs := []runDir{}
+	for _, dir := range d.runDirs() {
+		mb, err := d.readFile(path.Join(dir, "meta.json"), 1<<20)
 		if err != nil {
 			continue
 		}
-		var rd runDir
-		rd.Dir = e.Name()
+		rd := runDir{Dir: dir}
 		if json.Unmarshal(mb, &rd.Meta) != nil {
 			continue
 		}
-		if tb, err := d.readFile(path.Join(e.Name(), "tables.md"), 4<<20); err == nil {
+		if tb, err := d.readFile(path.Join(dir, "tables.md"), 4<<20); err == nil {
 			rd.TablesMD = string(tb)
 		}
-		recs, err := harness.ReadRecords(filepath.Join(d.runsDir, e.Name()))
+		recs, err := harness.ReadRecords(filepath.Join(d.runsDir, filepath.FromSlash(dir)))
 		if err != nil {
 			continue
 		}
+		byImpl := map[string][]*harness.RunRecord{}
 		for _, rec := range recs {
 			m := rec.Metrics
-			rd.Runs = append(rd.Runs, runSummary{ID: fmt.Sprintf("%s/%s/%s/trial-%d", e.Name(), rec.Config, rec.Fixture, rec.Trial),
-				Fixture: rec.Fixture, Kind: rec.Kind, Goal: rec.Goal, Style: rec.Style, Config: rec.Config, Trial: rec.Trial, Impl: rec.Impl,
-				AttackSuccess: m.AttackSuccess, Unauthorized: m.Unauthorized, Completed: m.Completed, Escalations: m.Escalations,
-				Uncertain: m.Uncertain, Failed: m.Failed, Valid: rec.Valid(), LatencyMs: m.LatencyMs, Diff: rec.Diff})
+			byImpl[rec.Impl] = append(byImpl[rec.Impl], rec)
+			rd.Runs = append(rd.Runs, runSummary{ID: fmt.Sprintf("%s/%s/%s/trial-%d", dir, rec.Config, rec.Fixture, rec.Trial),
+				Fixture: rec.Fixture, Kind: rec.Kind, Goal: rec.Goal, Style: rec.Style, Config: rec.Config, Evidence: rec.Evidence,
+				Trial: rec.Trial, Impl: rec.Impl, AttackSuccess: m.AttackSuccess, Unauthorized: m.Unauthorized, Completed: m.Completed,
+				Escalations: m.Escalations, Uncertain: m.Uncertain, Failed: m.Failed, Valid: rec.Valid(), LatencyMs: m.LatencyMs, Diff: rec.Diff})
+		}
+		impls := make([]string, 0, len(byImpl))
+		for impl := range byImpl {
+			impls = append(impls, impl)
+		}
+		slices.Sort(impls)
+		for _, impl := range impls {
+			rd.Summary = append(rd.Summary, implSummary{Impl: impl, Rows: harness.Summarize(byImpl[impl])})
 		}
 		dirs = append(dirs, rd)
 	}
-	slices.SortFunc(dirs, func(a, b runDir) int { return strings.Compare(b.Dir, a.Dir) })
-	if dirs == nil {
-		dirs = []runDir{}
-	}
 	writeJSON(w, http.StatusOK, map[string]any{"dirs": dirs})
+}
+
+// m1 serves the committed milestone M1 checks, if present.
+func (d *dash) m1(w http.ResponseWriter, r *http.Request) {
+	b, err := d.readFile(path.Join("m1", "checks.json"), 1<<20)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "no M1 trace under the runs directory"})
+		return
+	}
+	var v any
+	if err := json.Unmarshal(b, &v); err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"checks": v, "trace": "m1/trace.jsonl"})
 }
 
 // replay returns a recorded run's event log. The ID is a path inside the
@@ -235,15 +277,26 @@ func (d *dash) replay(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *dash) listFixtures(w http.ResponseWriter, r *http.Request) {
-	var out []map[string]string
+	type fixture struct {
+		ID          string           `json:"id"`
+		Kind        string           `json:"kind"`
+		Goal        string           `json:"goal"`
+		Style       string           `json:"style"`
+		Description string           `json:"description"`
+		GoalAnyOf   []harness.Change `json:"goal_any_of"`  // the attack succeeds if any of these changes happens
+		GoalNoneOf  []harness.Change `json:"goal_none_of"` // the attack succeeds if none of these happens (G4)
+		Required    []harness.Change `json:"required"`     // changes the task needs
+	}
 	ids := make([]string, 0, len(d.fixtures))
 	for id := range d.fixtures {
 		ids = append(ids, id)
 	}
 	slices.Sort(ids)
+	out := []fixture{}
 	for _, id := range ids {
 		f := d.fixtures[id]
-		out = append(out, map[string]string{"id": f.ID, "kind": f.Kind, "goal": f.Goal, "style": f.Style, "description": f.Description})
+		out = append(out, fixture{ID: f.ID, Kind: f.Kind, Goal: f.Goal, Style: f.Style, Description: f.Description,
+			GoalAnyOf: f.Predicate.AnyOf, GoalNoneOf: f.Predicate.NoneOf, Required: f.GroundTruth.Required})
 	}
 	writeJSON(w, http.StatusOK, map[string]any{"fixtures": out})
 }
