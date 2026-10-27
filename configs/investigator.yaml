@@ -13,5 +13,5 @@ evidence: "on"
 peers: {responder: "http://127.0.0.1:8402"}
 events: runs/live/investigator.jsonl
 models: {impl: scripted}       # "model" is blocked on the model-access gate (docs/GATE.md)
-clock: {mode: system}
+clock: {mode: fixture}          # replay the mock environment at the fixture's own time
 approval_wait: 2m

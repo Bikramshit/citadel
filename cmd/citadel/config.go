@@ -24,7 +24,7 @@ import (
 // ClockConfig selects a process's time source.
 type ClockConfig struct {
 	Mode  string    `yaml:"mode"`  // system | fixture
-	Epoch time.Time `yaml:"epoch"` // fixture mode: wall time at which the fixture's "now" begins
+	Epoch time.Time `yaml:"epoch"` // fixture mode: wall time at which the fixture's "now" begins; default: process start
 }
 
 // ModelConfig selects the model implementation for an agent.
@@ -111,10 +111,14 @@ func clockFor(c ClockConfig, fx *harness.Fixture) (value.Clock, error) {
 	case "", "system":
 		return value.SystemClock{}, nil
 	case "fixture":
-		if c.Epoch.IsZero() {
-			return nil, fmt.Errorf("%w: fixture clock needs an epoch", value.ErrConfig)
+		// Without an explicit shared epoch, the fixture's "now" begins when
+		// this process starts; processes started a few seconds apart then
+		// agree to within that gap, inside the 30-second freshness skew.
+		epoch := c.Epoch
+		if epoch.IsZero() {
+			epoch = time.Now()
 		}
-		return value.OffsetClock{Base: fx.Now, Epoch: c.Epoch, Wall: time.Now}, nil
+		return value.OffsetClock{Base: fx.Now, Epoch: epoch, Wall: time.Now}, nil
 	}
 	return nil, fmt.Errorf("%w: clock mode %q", value.ErrConfig, c.Mode)
 }

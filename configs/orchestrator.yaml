@@ -8,4 +8,4 @@ key: keys/orchestrator.key     # written by `make keys`
 thresholds: configs/thresholds.yaml
 policy_version: citadel-policy-v1
 investigator: http://127.0.0.1:8401
-clock: {mode: system}
+clock: {mode: fixture}          # replay the mock environment at the fixture's own time

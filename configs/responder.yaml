@@ -13,5 +13,5 @@ evidence: "on"
 peers: {}
 events: runs/live/responder.jsonl
 models: {impl: scripted}
-clock: {mode: system}
+clock: {mode: fixture}          # replay the mock environment at the fixture's own time
 approval_wait: 2m
