@@ -78,9 +78,9 @@ fuzz-ci:
 	$(MAKE) fuzz FUZZTIME=30s
 
 keys: build
-	./$(BIN) keygen --dir keys --agent orchestrator --role orchestrator
-	./$(BIN) keygen --dir keys --agent investigator --role agent
-	./$(BIN) keygen --dir keys --agent responder --role agent
+	./$(BIN) keygen --dir keys --agent orchestrator --role orchestrator --kid orchestrator
+	./$(BIN) keygen --dir keys --agent investigator --role agent --kid investigator
+	./$(BIN) keygen --dir keys --agent responder --role agent --kid responder
 
 m1: build
 	$(GO) test -race -run '^TestM1$$' -v ./internal/harness

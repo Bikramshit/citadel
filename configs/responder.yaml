@@ -1,0 +1,17 @@
+# Example Responder configuration. Paths are relative to the repository root.
+role: responder
+listen: 127.0.0.1:8402
+catalog: configs/catalog.yaml
+inventory: configs/inventory.yaml
+fixture: builtin:M1
+registry: keys/registry.json
+key: keys/responder.key        # written by `make keys`
+thresholds: configs/thresholds.yaml
+policy_version: citadel-policy-v1
+handoff_mode: C2
+evidence: "on"
+peers: {}
+events: runs/live/responder.jsonl
+models: {impl: scripted}
+clock: {mode: system}
+approval_wait: 2m

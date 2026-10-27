@@ -48,3 +48,16 @@ func (c *ManualClock) Set(t time.Time) {
 	c.t = t.UTC()
 	c.mu.Unlock()
 }
+
+// OffsetClock maps wall time onto another timeline: it reads Base plus the
+// wall time elapsed since Epoch. Processes that share Base and Epoch share
+// a timeline, which lets a multi-process demo replay a fixture at the
+// fixture's own time while time still passes.
+type OffsetClock struct {
+	Base  time.Time
+	Epoch time.Time
+	Wall  func() time.Time // time.Now outside tests
+}
+
+// Now returns Base plus the wall time since Epoch.
+func (c OffsetClock) Now() time.Time { return c.Base.Add(c.Wall().Sub(c.Epoch)).UTC() }

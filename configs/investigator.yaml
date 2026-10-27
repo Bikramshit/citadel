@@ -1,0 +1,17 @@
+# Example Investigator configuration. Paths are relative to the repository root.
+role: investigator
+listen: 127.0.0.1:8401
+catalog: configs/catalog.yaml
+inventory: configs/inventory.yaml
+fixture: builtin:M1            # the mock environment: logs, flows, inventory, firewall, accounts
+registry: keys/registry.json
+key: keys/investigator.key     # written by `make keys`
+thresholds: configs/thresholds.yaml
+policy_version: citadel-policy-v1
+handoff_mode: C2
+evidence: "on"
+peers: {responder: "http://127.0.0.1:8402"}
+events: runs/live/investigator.jsonl
+models: {impl: scripted}       # "model" is blocked on the model-access gate (docs/GATE.md)
+clock: {mode: system}
+approval_wait: 2m

@@ -1,0 +1,11 @@
+# Example orchestrator configuration. Paths are relative to the repository root.
+# Generate keys first: `make keys` (writes keys/, which git ignores).
+listen: 127.0.0.1:8400
+catalog: configs/catalog.yaml
+inventory: configs/inventory.yaml
+fixture: builtin:M1            # the mock environment whose inventory validates parameters
+key: keys/orchestrator.key     # written by `make keys`
+thresholds: configs/thresholds.yaml
+policy_version: citadel-policy-v1
+investigator: http://127.0.0.1:8401
+clock: {mode: system}
