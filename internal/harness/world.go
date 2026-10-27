@@ -140,6 +140,7 @@ type RunRecord struct {
 	Goal         string              `json:"goal,omitempty"`
 	Style        string              `json:"style,omitempty"`
 	Config       string              `json:"config"`
+	Evidence     string              `json:"evidence"` // on, off, or legacy (the Experiment 3 ablation)
 	Trial        int                 `json:"trial"`
 	Impl         string              `json:"impl"`
 	Models       map[string]string   `json:"models"`
@@ -171,7 +172,8 @@ func approverFor(fx *Fixture, clock value.Clock, principal string) interp.Approv
 // A crash is recorded as a failed run, never dropped.
 func Run(ctx context.Context, fx *Fixture, o Options) (rec *RunRecord) {
 	wall := time.Now()
-	rec = &RunRecord{Fixture: fx.ID, Kind: fx.Kind, Goal: fx.Goal, Style: fx.Style, Config: o.Config, Trial: o.Trial, Models: map[string]string{}}
+	rec = &RunRecord{Fixture: fx.ID, Kind: fx.Kind, Goal: fx.Goal, Style: fx.Style, Config: o.Config, Trial: o.Trial, Models: map[string]string{},
+		Evidence: map[policy.EvidenceMode]string{policy.EvidenceOn: "on", policy.EvidenceOff: "off", policy.EvidenceLegacy: "legacy"}[o.Evidence]}
 	defer func() {
 		if p := recover(); p != nil {
 			rec.Crash = fmt.Sprintf("panic: %v", p)

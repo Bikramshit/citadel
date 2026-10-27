@@ -13,7 +13,7 @@ If these runs counted as invalid, the attack-success and side-effect metrics wou
 
 **Options.** (a) Invariant 1 invalidates every configuration. (b) Invariant 1 is enforced in deterministic tests and in C1-data and C2 runs. A fixture may declare effects as `known_limitation`; the checker tolerates those, while the metrics still count them as unauthorized side effects. In C0 and C1-instr runs, invariant 1 is measured, not enforced. (c) Invariant 1 is never enforced in harness runs.
 
-**Interim: (b).** Invariants 2 to 13 are runtime properties and are enforced in every Citadel configuration. C0 has no runtime, so only invariant 9 (the tool's own apply log) is checked there.
+**Interim: (b).** Invariants 2 to 13 are runtime properties and are enforced in every Citadel configuration. C0 has no runtime, so only invariant 9 (the tool's own apply log) is checked there. The Experiment 3 ablation runs C2 under the superseded evidence rule to measure what that rule lets through, so it also measures invariant 1 rather than enforcing it.
 
 ## Q2. P5 "replay of an accepted envelope → ERR_REPLAY" versus receiver step 7 [security]
 

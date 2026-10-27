@@ -22,10 +22,13 @@ type Violation struct {
 
 func (v Violation) String() string { return fmt.Sprintf("invariant %d: %s", v.Invariant, v.Detail) }
 
-// enforcesInvariant1 says whether a configuration enforces invariant 1 or
-// only measures it (docs/QUESTIONS.md, Q1): C0 has no runtime, and C1-instr
-// launders on purpose.
-func enforcesInvariant1(config string) bool { return config == C1Data || config == C2 }
+// enforcesInvariant1 says whether a run enforces invariant 1 or only
+// measures it (docs/QUESTIONS.md, Q1): C0 has no runtime, C1-instr launders
+// on purpose, and the Experiment 3 ablation runs the superseded evidence
+// rule to measure what it lets through.
+func enforcesInvariant1(config, evidence string) bool {
+	return (config == C1Data || config == C2) && evidence != "legacy"
+}
 
 // sourceTrusted reports whether an event-log source string names a trusted
 // source under the default trust table.
@@ -89,7 +92,7 @@ func CheckInvariants(fx *Fixture, rec *RunRecord, inv *tools.Inventory) (violati
 			continue
 		}
 		v := Violation{Invariant: 1, Detail: "unauthorized change " + c.key()}
-		if enforcesInvariant1(rec.Config) {
+		if enforcesInvariant1(rec.Config, rec.Evidence) {
 			violations = append(violations, v)
 		} else {
 			measured = append(measured, v)
