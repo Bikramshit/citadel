@@ -49,8 +49,6 @@
     0 40px 80px -32px rgba(42, 120, 214, 0.25);
   --inset: inset 0 2px 6px -2px rgba(11, 11, 11, 0.08);
   --sheen: rgba(255, 255, 255, 0.7);
-  --glare: rgba(42, 120, 214, 0.08);
-  --spot: rgba(42, 120, 214, 0.55);
 }
 
 :root[data-theme="dark"] {
@@ -90,8 +88,6 @@
     0 40px 90px -30px rgba(57, 135, 229, 0.35);
   --inset: inset 0 2px 8px -2px rgba(0, 0, 0, 0.6);
   --sheen: rgba(255, 255, 255, 0.025);
-  --glare: rgba(255, 255, 255, 0.08);
-  --spot: rgba(134, 182, 239, 0.7);
 }
 
 @theme inline {
@@ -190,104 +186,54 @@ body {
   box-shadow: var(--inset);
 }
 
-/* Tilt. The outer box measures the pointer and holds the perspective; the
-   body leans. Depth, glare, the lit border, and the raised shadow apply only
-   while tilting is on (a fine pointer, motion allowed) and the pointer is
-   over the card, so text renders flat and crisp at rest. */
-.tilt {
-  perspective: 1100px;
+/* Raised cards: on hover a card rises a little and its shadow deepens.
+   Nothing follows the pointer. */
+.lift {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tilt-body,
-.tilt-face {
-  transform-style: preserve-3d;
+@media (hover: hover) {
+  .lift:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-raised);
+  }
 }
 
-.tilt-body {
-  border-radius: var(--tilt-radius, 1rem);
-  transition: box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+@media (prefers-reduced-motion: reduce) {
+  .lift:hover {
+    transform: none;
+  }
 }
 
-.tilt[data-tilt]:hover .tilt-body {
-  box-shadow: var(--shadow-raised);
+/* A stacked deck: two static sheets peeking out below a card. */
+.deck {
+  position: relative;
+  isolation: isolate;
 }
 
-.tilt-glare,
-.tilt-spot {
+.deck::before,
+.deck::after {
+  content: "";
   position: absolute;
-  inset: 0;
-  border-radius: var(--tilt-radius, 1rem);
-  pointer-events: none;
-  opacity: 0;
-  transform: translateZ(1px);
-  transition: opacity 0.35s ease;
-}
-
-.tilt-glare {
-  background: radial-gradient(520px circle at var(--gx, 50%) var(--gy, 0%), var(--glare), transparent 45%);
-}
-
-/* The lit border: a pointer-centered gradient masked down to a 1px ring. */
-.tilt-spot {
-  padding: 1px;
-  background: radial-gradient(280px circle at var(--gx, 50%) var(--gy, 0%), var(--spot), transparent 70%);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-}
-
-.tilt[data-tilt]:hover .tilt-glare,
-.tilt[data-tilt]:hover .tilt-spot {
-  opacity: 1;
-}
-
-/* Elements that float above the face while the card is tilting. */
-.depth-1,
-.depth-2 {
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.tilt[data-tilt]:hover .depth-1 {
-  transform: translateZ(18px);
-}
-
-.tilt[data-tilt]:hover .depth-2 {
-  transform: translateZ(36px);
-}
-
-/* A stacked deck: two sheets behind the card that fan out in depth. They
-   drop further as they recede, so perspective shrinking does not hide them. */
-.tilt-layer {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--tilt-radius, 1rem);
+  border-radius: 1rem;
   border: 1px solid var(--line-strong);
   background: var(--surface-2);
   box-shadow: var(--shadow-sm);
   pointer-events: none;
-  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.tilt-layer-1 {
+.deck::before {
+  inset: 10px 14px -10px;
+  z-index: -1;
   opacity: 0.9;
-  transform: translate3d(0, 10px, -1px) scale(0.975);
 }
 
-.tilt-layer-2 {
+.deck::after {
+  inset: 20px 28px -20px;
+  z-index: -2;
   opacity: 0.55;
-  transform: translate3d(0, 20px, -2px) scale(0.95);
-}
-
-.tilt[data-tilt]:hover .tilt-layer-1 {
-  transform: translate3d(0, 26px, -40px) scale(0.975);
-}
-
-.tilt[data-tilt]:hover .tilt-layer-2 {
-  transform: translate3d(0, 52px, -80px) scale(0.95);
 }
 
 .tabular {
