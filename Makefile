@@ -28,7 +28,7 @@ FUZZ_TARGETS := \
 	./internal/policy:FuzzApprovalKeyEncoding
 
 .PHONY: bench concurrency all build check fmt-check vet staticcheck govulncheck test traceability coverage \
-        fuzz fuzz-ci keys m1 tune eval dash clean
+        fuzz fuzz-ci keys m1 tune eval dash client client-dev clean
 
 all: build
 
@@ -103,6 +103,17 @@ eval: build
 
 dash: build
 	./$(BIN) dash --runs runs/
+
+# The Next.js client in client/ reads `citadel dash` through a loopback proxy;
+# start `make dash` first. It needs Node 20.9 or later.
+client:
+	npm --prefix client ci
+	npm --prefix client run build
+	npm --prefix client run start
+
+client-dev:
+	npm --prefix client ci
+	npm --prefix client run dev
 
 clean:
 	rm -rf bin

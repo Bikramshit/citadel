@@ -77,7 +77,10 @@ make eval IMPL=scripted TRIALS=1   # deterministic run of all four configuration
 make eval         # model runs (blocked on the gate)
 make bench        # Experiment 4: Go-layer overhead, written to runs/results/bench.txt
 make dash         # dashboard on http://127.0.0.1:8080: replay recorded runs, start live scripted runs
+make client       # with `make dash` running: the Next.js client on http://127.0.0.1:3000 (Node 20.9+)
 ```
+
+The Next.js client in `client/` is a second view of the same data. It reads `citadel dash` through a proxy route that forwards an allowlist of paths to a loopback address (`CITADEL_URL`, default `http://127.0.0.1:8080`) and accepts state-changing requests only from its own origin. Every rate and interval it shows comes from the dash's summaries of recorded runs; the client groups event logs into per-call views and links them, and computes no metric of its own. The dashboard embedded in the binary needs no Node toolchain.
 
 `citadel harness` refuses to score `testdata/eval` unless `configs/thresholds.yaml` is committed, and it records that commit in every run. Each run directory holds `meta.json` (git commit, thresholds commit, implementation, models, settings, prompt hashes), `records.jsonl`, one event log per run, and `tables.md`. `citadel harness --regenerate <dir>` rebuilds `tables.md` from the recorded runs.
 
