@@ -63,10 +63,12 @@ Commands run on this machine (darwin/arm64, go1.27.3) before each commit; the ne
 - `go test -race ./...`: every package passes.
 - `go test -race -count=50` on the CT and L7 tests (`make concurrency`): pass.
 - `staticcheck` 2026.2.2 and `govulncheck` v1.9.0: clean ("No vulnerabilities found").
-- Coverage of the seven required packages: label 100.0%, evidence 100.0%, runstate 99.1%, authz 95.1%, policy 95.1%, handoff 93.5%, signed 92.4%.
+- `make check` (gofmt, vet, staticcheck, govulncheck, `go test -race ./...`, concurrency tests ×50, traceability, coverage): passes. Coverage of the seven required packages: label 100.0%, evidence 96.8%, authz 95.1%, runstate 93.9%, handoff 93.5%, signed 92.4%, policy 92.2%.
 - `citadel demo m1`: seven of seven elements pass. The Investigator and the Responder ran as two processes, with the handoff over HTTP on 127.0.0.1.
 - `citadel tune --fixtures testdata/dev`: k = 5. The other thresholds keep their starting values, verified on DEV-1, DEV-3, and DEV-6.
-- `citadel harness --impl scripted --trials 1`: 132 runs, 0 crashed, 0 with invariant violations.
+- `citadel harness --impl scripted --trials 1` across all four configurations: 132 runs, 0 crashed, 0 with invariant violations (runs/results/20261027T130002Z-scripted).
+- Experiment 3, deterministic: C2 with E1 and E2 and with the old rule on G3b, G5, and B1 to B12, 18 runs each, 0 crashed, 0 invalid (runs/results/experiment3/20261027T130030Z-scripted, runs/results/experiment3/20261027T130031Z-evidence-legacy-scripted).
+- `make bench`: Experiment 4 benchmarks in runs/results/bench.txt.
 - Mutation checks:
   - Disabling A3's protected-asset branch fails `TestA3_ProtectedPublicAsset`.
   - Disabling the iteration pre-check fails L4.

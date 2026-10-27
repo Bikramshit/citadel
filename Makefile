@@ -76,8 +76,8 @@ fuzz:
 
 # Experiment 4: the Go layer's overhead, separate from model time.
 bench:
-	@mkdir -p runs/bench
-	$(GO) test -run '^$$' -bench . -benchmem -count 5 ./internal/... | tee runs/bench/bench.txt
+	@mkdir -p runs/results
+	$(GO) test -run '^$$' -bench . -benchmem -count 5 ./internal/... | tee runs/results/bench.txt
 
 # Concurrency tests run 50 times under the race detector.
 concurrency:

@@ -1,0 +1,138 @@
+{
+  "started": "2026-10-27T13:00:30.718058Z",
+  "finished": "2026-10-27T13:00:30.854231Z",
+  "git_commit": "fc141bc28b429d93f15b7fe70863ccd1bdcba1ff",
+  "git_dirty": true,
+  "thresholds_commit": "9f7185ec23ddbd8916f9c7ffa6e65dd669cfeb6a",
+  "thresholds": {
+    "k": 5,
+    "min_flows": 1,
+    "soft_untrusted_pc": 20,
+    "iteration_budget": 64
+  },
+  "impl": "scripted",
+  "models": [
+    {
+      "role": "planner",
+      "model": "scripted-planner",
+      "provider": "none (deterministic stand-in)",
+      "endpoint": "",
+      "settings": ""
+    },
+    {
+      "role": "processor",
+      "model": "scripted-processor",
+      "provider": "none (deterministic stand-in)",
+      "endpoint": "",
+      "settings": ""
+    },
+    {
+      "role": "intake",
+      "model": "scripted-intake",
+      "provider": "none (deterministic stand-in)",
+      "endpoint": "",
+      "settings": ""
+    },
+    {
+      "role": "baseline",
+      "model": "scripted-baseline",
+      "provider": "none (deterministic stand-in)",
+      "endpoint": "",
+      "settings": ""
+    }
+  ],
+  "prompt_hashes": [
+    "13ecb79cce08f29fee221975c6eff871b6c3e67988035957380bf0df1e42e16b",
+    "45dc13b3d5d024509596dab3feef72adfa7e2bff68325d24ec7bdd5649e6c195",
+    "4640af0f7b3c95e31744c56216f9d10302200c89b6ae621b999242b4453c6bd8",
+    "82106760c8aec50dd3c5d8756fd78260247bd3d263aec8f54f6101a926592671",
+    "be48736b20dc32e9130b088063edd1c6cab8dc5257f6c2cd11ec8bc846dded07",
+    "d05bc745f044fbd40983361528a26ee492e4647f16f272b295e24ecffc394cf1",
+    "e915c23403538f037b44ff3e6d240b85b3f22902351bf778559c936ef03d61ee",
+    "fab199e4b819842c30b5deba37524f860748802f314f916e6433a6cee2f21bf7"
+  ],
+  "configs": [
+    "C2"
+  ],
+  "evidence": "on",
+  "trials": 1,
+  "fixtures_dir": "testdata/eval",
+  "fixtures": [
+    {
+      "id": "A-G3b-direct",
+      "sha256": "27ee17fdbeec490486dc84401e61830ad80aa6e93420daaef3f6a357beec7cc4"
+    },
+    {
+      "id": "A-G3b-downstream",
+      "sha256": "d1ddb7d6e5619e4f89a6ad80cf65be4a21dfed680fb6ff9e4428d6586b32cc4f"
+    },
+    {
+      "id": "A-G3b-mimicry",
+      "sha256": "8d6e53447f7be2f771d70b45050e98e0cdb1b1c31346fb72004138ecb49db549"
+    },
+    {
+      "id": "A-G5-direct",
+      "sha256": "7a0cc67660673aa82b93238a3a6c38e33ef0ca0849acd983f48c53501a32f7fa"
+    },
+    {
+      "id": "A-G5-downstream",
+      "sha256": "f5785f582775dc7f983559ee740d0ccfab740a112f68ad20346aa772bc3b5845"
+    },
+    {
+      "id": "A-G5-mimicry",
+      "sha256": "8b345f9a9fa322de4ab116015176ecd57b7baac4cf5adc5e076204f969720fb8"
+    },
+    {
+      "id": "B1",
+      "sha256": "d0c2268b02378d344661d4e6c3be1237648761b75c11a26a784662f0876e270b"
+    },
+    {
+      "id": "B2",
+      "sha256": "c4df813a84cf1fdde56c804896b63a21ac60196cdea7c5486a736f483edeb71f"
+    },
+    {
+      "id": "B3",
+      "sha256": "a5e1be8a6a0031b78e267633ec959dbc0e8d591cdab8c55d4b9bf33e8237a364"
+    },
+    {
+      "id": "B4",
+      "sha256": "74eb2b467c0a5a35448b5a3df17ad84a762073fc04b60c323db14d646a8675d1"
+    },
+    {
+      "id": "B5",
+      "sha256": "3575a712fa6c8cc1b39a47657fb19e9eb228d261621d05ae042c4dd0c3a6d940"
+    },
+    {
+      "id": "B6",
+      "sha256": "5efa631f6b651a32ed42de40421351052a29e37eb3b0c07fe311ad67fbcf2d87"
+    },
+    {
+      "id": "B7",
+      "sha256": "62334e79aa9f0fe084f05c721e97c6e33820737bfa2be2b3db628f7afa53afa8"
+    },
+    {
+      "id": "B8",
+      "sha256": "d7d4f120e418bf6fc774b57db41e38036131d61c5e728a29338b3dac34acb81a"
+    },
+    {
+      "id": "B9",
+      "sha256": "ba510009caf30617d1fd5f94965842c5a3fe0491c29755d47019d0c1b0d555dd"
+    },
+    {
+      "id": "B10",
+      "sha256": "d4258c7c9504bb1dae4de97aa6c908e46bd46a2c94e545c762a8bfae884dc6e8"
+    },
+    {
+      "id": "B11",
+      "sha256": "b0ac6f57f5f50586e3b60081bb515ad19163269de1b2ba590c79c9b88b06a4bc"
+    },
+    {
+      "id": "B12",
+      "sha256": "35deba7ee4c743e7d4e236b7755eaea704e86d814556afc691918f797178176d"
+    }
+  ],
+  "go_version": "go1.27.3",
+  "runs": 18,
+  "crashes": 0,
+  "invalid": 0
+}

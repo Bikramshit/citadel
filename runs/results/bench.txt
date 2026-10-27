@@ -1,0 +1,79 @@
+PASS
+ok  	citadel/internal/authz	1.567s
+PASS
+ok  	citadel/internal/catalog	0.636s
+PASS
+ok  	citadel/internal/events	0.617s
+PASS
+ok  	citadel/internal/evidence	0.622s
+goos: darwin
+goarch: arm64
+pkg: citadel/internal/handoff
+cpu: Apple M2
+BenchmarkVerify-8   	    3207	    416661 ns/op	  128648 B/op	     965 allocs/op
+BenchmarkVerify-8   	    3304	    393683 ns/op	  128619 B/op	     965 allocs/op
+BenchmarkVerify-8   	    3596	    353724 ns/op	  128685 B/op	     965 allocs/op
+BenchmarkVerify-8   	    3639	    367150 ns/op	  128709 B/op	     965 allocs/op
+BenchmarkVerify-8   	    3544	    364741 ns/op	  128687 B/op	     965 allocs/op
+PASS
+ok  	citadel/internal/handoff	7.231s
+goos: darwin
+goarch: arm64
+pkg: citadel/internal/harness
+cpu: Apple M2
+BenchmarkRunC2-8   	     578	   2138052 ns/op	  644348 B/op	    5069 allocs/op
+BenchmarkRunC2-8   	     583	   2070637 ns/op	  643354 B/op	    5067 allocs/op
+BenchmarkRunC2-8   	     520	   2242290 ns/op	  646108 B/op	    5069 allocs/op
+BenchmarkRunC2-8   	     630	   1929711 ns/op	  645238 B/op	    5069 allocs/op
+BenchmarkRunC2-8   	     610	   2030806 ns/op	  645167 B/op	    5069 allocs/op
+PASS
+ok  	citadel/internal/harness	6.782s
+PASS
+ok  	citadel/internal/interp	0.687s
+PASS
+ok  	citadel/internal/label	0.856s
+PASS
+ok  	citadel/internal/llm	0.670s
+PASS
+ok  	citadel/internal/llm/scripted	0.656s
+PASS
+ok  	citadel/internal/orchestrator	0.655s
+goos: darwin
+goarch: arm64
+pkg: citadel/internal/plan
+cpu: Apple M2
+BenchmarkStaticCheck-8   	   84259	     13323 ns/op	   14182 B/op	     159 allocs/op
+BenchmarkStaticCheck-8   	   89869	     12745 ns/op	   14185 B/op	     159 allocs/op
+BenchmarkStaticCheck-8   	  104810	     11348 ns/op	   14184 B/op	     159 allocs/op
+BenchmarkStaticCheck-8   	  106443	     11253 ns/op	   14184 B/op	     159 allocs/op
+BenchmarkStaticCheck-8   	  106743	     11382 ns/op	   14184 B/op	     159 allocs/op
+PASS
+ok  	citadel/internal/plan	6.535s
+goos: darwin
+goarch: arm64
+pkg: citadel/internal/policy
+cpu: Apple M2
+BenchmarkDecide-8   	   38098	     32027 ns/op	   43004 B/op	     480 allocs/op
+BenchmarkDecide-8   	   35528	     41926 ns/op	   43007 B/op	     480 allocs/op
+BenchmarkDecide-8   	   38744	     31141 ns/op	   43005 B/op	     480 allocs/op
+BenchmarkDecide-8   	   31756	     38316 ns/op	   42999 B/op	     480 allocs/op
+BenchmarkDecide-8   	   33966	     32291 ns/op	   43006 B/op	     480 allocs/op
+PASS
+ok  	citadel/internal/policy	6.917s
+goos: darwin
+goarch: arm64
+pkg: citadel/internal/runstate
+cpu: Apple M2
+BenchmarkAdmit-8   	   10000	    110975 ns/op	  112682 B/op	    1224 allocs/op
+BenchmarkAdmit-8   	   12278	     97972 ns/op	  112675 B/op	    1224 allocs/op
+BenchmarkAdmit-8   	   12322	     96332 ns/op	  112677 B/op	    1224 allocs/op
+BenchmarkAdmit-8   	   12651	     94069 ns/op	  112674 B/op	    1224 allocs/op
+BenchmarkAdmit-8   	   13216	     90745 ns/op	  112676 B/op	    1224 allocs/op
+PASS
+ok  	citadel/internal/runstate	6.538s
+PASS
+ok  	citadel/internal/signed	0.652s
+PASS
+ok  	citadel/internal/tools	0.655s
+PASS
+ok  	citadel/internal/value	0.645s
