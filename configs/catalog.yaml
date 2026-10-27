@@ -1,0 +1,28 @@
+# Task catalog (frozen on Day 1). A fixed Go struct loaded from YAML, not a
+# policy language. The numbers are starting defaults to tune against the
+# benign development fixtures, not findings.
+tasks:
+  - task: contain_incident
+    version: 1
+    roles: [soc_analyst]
+    params:
+      hosts:                 {type: list<hostname>, min: 1, max: 3, must_exist: inventory}
+      window:                {type: duration, max: 24h}
+      confirmed_ips:         {type: list<ipv4>, max: 20, class: public_external}
+      allow_account_disable: {type: bool}
+    agents:
+      investigator:
+        ops:
+          - {tool: logs, action: read, scope: {hosts: $hosts, window: $window}}
+        handoffs:
+          - {to: responder, task: contain_incident, max: 1}
+      responder:
+        ops:
+          - {tool: firewall, action: block, scope: {ip_class: public_external, exclude_protected: true}, max_calls: 50}
+          - {tool: accounts, action: disable, when: $allow_account_disable,
+             scope: {account_kinds: [user, service], exclude_protected: true}, max_calls: 5}
+          - {tool: inventory, action: read}
+    data:
+      ips: list<ipv4>
+      accounts: list<account_id>
+    budgets: {max_sensitive_calls: 60, ttl: 30m}

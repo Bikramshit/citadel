@@ -1,0 +1,19 @@
+# Base inventory of the mock environment: the trusted system of record for
+# protected assets, protected accounts, internal ranges, the account
+# directory, partner and shared addresses, and the sensor registry. Fixtures
+# start from this file and may add to it (for example, B11 and E-T10 list a
+# shared address; E-T12 adds a load-balancer flow sensor).
+hosts: [web-03, web-04]
+internal_ranges: [10.0.0.0/8]
+protected_ips: [10.0.0.1, 10.0.0.53] # VPN, DNS
+protected_accounts: [admin-alice, breakglass]
+accounts:
+  - {name: jdoe, kind: user}
+  - {name: svc-backup, kind: service}
+  - {name: admin-alice, kind: admin}
+  - {name: breakglass, kind: admin}
+partner_ips: [192.0.2.10] # payment processor egress
+shared_ips: []
+sensors:
+  - {id: web-access, kind: access, pipeline: web-logs}
+  - {id: net-flows, kind: flow, pipeline: netflow}
