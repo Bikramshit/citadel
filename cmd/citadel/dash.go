@@ -12,7 +12,6 @@ import (
 	"io/fs"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"os"
 	"path"
 	"path/filepath"
@@ -134,6 +133,7 @@ func (d *dash) routes() http.Handler {
 		secureHeaders(w)
 		http.FileServerFS(static).ServeHTTP(w, r)
 	})))
+	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusNoContent) })
 	mux.HandleFunc("GET /api/runs", d.listRuns)
 	mux.HandleFunc("GET /api/runs/{id...}", d.replay)
 	mux.HandleFunc("GET /runs/{id...}", d.replay)
@@ -206,8 +206,8 @@ func (d *dash) listRuns(w http.ResponseWriter, r *http.Request) {
 // replay returns a recorded run's event log. The ID is a path inside the
 // runs directory, opened through os.Root so it cannot escape it.
 func (d *dash) replay(w http.ResponseWriter, r *http.Request) {
-	id, err := url.PathUnescape(r.PathValue("id"))
-	if err != nil || id == "" || strings.Contains(id, "..") || strings.HasPrefix(id, "/") {
+	id := r.PathValue("id") // already unescaped by the router
+	if id == "" || strings.Contains(id, "..") || strings.HasPrefix(id, "/") {
 		writeError(w, http.StatusBadRequest, fmt.Errorf("%w: run id", value.ErrSchema))
 		return
 	}

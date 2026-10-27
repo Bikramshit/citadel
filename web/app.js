@@ -591,7 +591,7 @@
         isHandoff ? null : h('div', null, trustBadge(e.trusted === true, 'label')))),
       h('td', null, isPlan ? muted('\u2014') : sourceChips(e.sources)),
       h('td', null, isPlan ? muted('\u2014') : trustBadge(e.pc_trusted === true)),
-      h('td', null, h('div', { class: 'chips' }, rulesOf(e).map(ruleChip))),
+      h('td', null, h('div', { class: 'chips rules' }, rulesOf(e).map(ruleChip))),
       h('td', null, isPlan
         ? verdictBadge({ verdict: 'deny', rule: str(e.code), reason: str(e.detail) }, 'plan rejected')
         : f ? verdictBadge(f) : muted('no final verdict recorded')),
@@ -827,7 +827,7 @@
   // Panel 3: Attack path
   // ------------------------------------------------------------------
 
-  const G = { colW: 214, gap: 66, pad: 16, headH: 52, nodeGap: 10, groupH: 18 };
+  const G = { colW: 200, gap: 56, pad: 14, headH: 52, nodeGap: 10, groupH: 18 };
   const COLUMNS = [
     { title: 'Authorization context', sub: 'run_start: effective capabilities', none: 'no run_start recorded' },
     { title: 'Sources', sub: 'analyst parameters, log records', none: 'no labeled sources' },
@@ -1116,7 +1116,7 @@
     svg.append(sv('title', { id: 'attack-svg-title' }, 'Attack path'), sv('desc', { id: 'attack-svg-desc' }, descText));
     const defs = sv('defs');
     for (const c of ['trusted', 'untrusted', 'neutral', 'injected']) {
-      defs.append(sv('marker', { id: 'arrow-' + c, viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '7', markerHeight: '7', orient: 'auto' },
+      defs.append(sv('marker', { id: 'arrow-' + c, viewBox: '0 0 10 10', refX: '9', refY: '5', markerWidth: '8', markerHeight: '8', markerUnits: 'userSpaceOnUse', orient: 'auto' },
         sv('path', { d: 'M0,0 L10,5 L0,10 z', class: 'arrow-' + c })));
     }
     svg.append(defs);
@@ -1184,8 +1184,8 @@
     const cache = S.compare.cache;
     if (cache.has(id)) return cache.get(id);
     const p = getJSON(runURL(id)).then((evs) => {
-      if (!Array.isArray(evs)) throw new Error('expected a JSON array of events');
-      return evs.filter(isObj);
+      if (!Array.isArray(evs) && evs !== null) throw new Error('expected a JSON array of events');
+      return arr(evs).filter(isObj);
     });
     cache.set(id, p);
     p.catch(() => cache.delete(id));
@@ -1275,16 +1275,16 @@
     } else {
       table = h('div', { class: 'table-scroll' }, h('table', { class: 'data' },
         h('caption', { class: 'visually-hidden' }, 'Decisions on state-changing calls under ' + str(sm.config) + ', in order'),
-        h('thead', null, h('tr', null, ['Target', 'Call', 'Target sources', 'Rules', 'Final', 'Outcome', 'In diff'].map((t) => h('th', { scope: 'col' }, t)))),
+        h('thead', null, h('tr', null, ['Target and call', 'Target sources', 'Rules', 'Final', 'Outcome', 'In diff'].map((t) => h('th', { scope: 'col' }, t)))),
         h('tbody', null, rows.map((e) => {
           const k = diffKey(e.op.tool, e.op.action, e.target);
           const differs = mine.has(k) !== other.has(k);
           const f = finalOf(e);
           return h('tr', { class: differs ? 'row-diff' : null, title: differs ? 'The two final diffs differ on this call.' : null },
-            h('td', null, clipped(e.target || '\u2014', 30, 'target'), h('div', null, trustBadge(e.trusted === true, 'label'))),
-            h('td', null, clipped(opName(e.op), 28, 'call')),
+            h('td', null, clipped(e.target || '\u2014', 30, 'target'), clipped(opName(e.op), 28, 'call-sub'),
+              h('div', null, trustBadge(e.trusted === true, 'label'))),
             h('td', null, sourceChips(e.sources)),
-            h('td', null, h('div', { class: 'chips' }, rulesOf(e).map(ruleChip))),
+            h('td', null, h('div', { class: 'chips rules' }, rulesOf(e).map(ruleChip))),
             h('td', null, f ? verdictBadge(f) : muted('none recorded')),
             h('td', null, outcomeCell(e, outcome.get(e), handoffOutcomes(evs))),
             h('td', null, mine.has(k) ? 'yes' : 'no', differs ? h('span', { class: 'visually-hidden' }, ' (differs from ' + otherName + ')') : null));
@@ -1499,8 +1499,8 @@
     try {
       const evs = await getJSON(runURL(sm.id));
       if (token !== r.seq) return;
-      if (!Array.isArray(evs)) throw new Error('expected a JSON array of events');
-      r.events = evs.filter(isObj);
+      if (!Array.isArray(evs) && evs !== null) throw new Error('expected a JSON array of events');
+      r.events = arr(evs).filter(isObj);
     } catch (err) {
       if (token !== r.seq) return;
       r.error = errMsg(err);
@@ -1513,8 +1513,8 @@
     S.dirsError = null;
     try {
       const j = await getJSON('/api/runs');
-      if (!isObj(j) || !Array.isArray(j.dirs)) throw new Error('response has no "dirs" array');
-      S.dirs = j.dirs.filter(isObj).sort((a, b) => str(b.dir).localeCompare(str(a.dir)));
+      if (!isObj(j) || !(Array.isArray(j.dirs) || j.dirs === null)) throw new Error('response has no "dirs" array');
+      S.dirs = arr(j.dirs).filter(isObj).sort((a, b) => str(b.dir).localeCompare(str(a.dir)));
       for (const d of S.dirs) d.runs = arr(d.runs).filter((x) => isObj(x) && str(x.id));
     } catch (err) {
       S.dirsError = errMsg(err);
@@ -1650,8 +1650,8 @@
   async function loadFixtures() {
     try {
       const j = await getJSON('/api/fixtures');
-      if (!isObj(j) || !Array.isArray(j.fixtures)) throw new Error('response has no "fixtures" array');
-      S.fixtures = j.fixtures.filter((f) => isObj(f) && str(f.id));
+      if (!isObj(j) || !(Array.isArray(j.fixtures) || j.fixtures === null)) throw new Error('response has no "fixtures" array');
+      S.fixtures = arr(j.fixtures).filter((f) => isObj(f) && str(f.id));
       S.fixturesError = null;
     } catch (err) {
       S.fixtures = [];

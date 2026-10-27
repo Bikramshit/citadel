@@ -114,8 +114,14 @@ a { color: var(--accent); }
   outline-offset: 2px;
 }
 
+/* Containers that clip or scroll are positioned, so absolutely positioned
+   screen-reader text inside them never widens the page. */
+.panel, .run-bar, .table-scroll, .svg-scroll, .chip, .trust, .badge, .outcome, td, th { position: relative; }
+
 .visually-hidden {
   position: absolute !important;
+  left: 0;
+  top: 0;
   width: 1px; height: 1px;
   margin: -1px; padding: 0; border: 0;
   overflow: hidden;
@@ -334,13 +340,15 @@ main:focus { outline: none; }
   padding: 0;
   list-style: none;
 }
-.facts li { display: inline-flex; gap: 6px; align-items: baseline; min-width: 0; }
+.facts li { display: inline-flex; gap: 6px; align-items: baseline; min-width: 0; max-width: 100%; }
+.facts li > .clip { min-width: 0; }
 .facts .k { color: var(--muted); font-size: 12px; }
 .facts .v { font-weight: 600; font-variant-numeric: tabular-nums; }
 .run-events { margin: 8px 0 0; padding: 0; list-style: none; font-size: 12.5px; display: grid; gap: 2px; }
 .run-events li { display: flex; gap: 8px; min-width: 0; }
 .run-events .kind { font-family: var(--mono); color: var(--muted); flex: none; }
 .run-events .who { font-weight: 600; flex: none; }
+.run-events li > .clip { flex: 1 1 auto; min-width: 0; }
 
 /* ---------- tables ---------- */
 
@@ -355,12 +363,12 @@ main:focus { outline: none; }
 table.data {
   border-collapse: collapse;
   width: 100%;
-  font-size: 12.5px;
+  font-size: 12px;
 }
 table.data th, table.data td {
   text-align: left;
   vertical-align: top;
-  padding: 6px 8px;
+  padding: 5px 7px;
   border-bottom: 1px solid var(--border);
 }
 table.data thead th {
@@ -384,21 +392,23 @@ table.data tr.row-diff:hover { background: var(--diff-row); }
   white-space: nowrap;
   vertical-align: bottom;
 }
-.target { font-family: var(--mono); font-size: 12.5px; max-width: 22ch; }
+.target { font-family: var(--mono); font-size: 12px; max-width: 20ch; }
 .call { font-family: var(--mono); white-space: nowrap; }
+.call-sub { display: block; font-family: var(--mono); color: var(--muted); font-size: 11.5px; }
 .seq { font-variant-numeric: tabular-nums; color: var(--muted); }
 
 /* ---------- chips and badges ---------- */
 
-.chips { display: flex; flex-wrap: wrap; gap: 3px; max-width: 360px; }
+.chips { display: flex; flex-wrap: wrap; gap: 3px; max-width: 200px; }
+.chips.rules { min-width: 150px; }
 .chip {
   display: inline-block;
-  max-width: 26ch;
+  max-width: 22ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10.5px;
   line-height: 1.5;
   padding: 0 6px;
   border-radius: 4px;
@@ -423,7 +433,7 @@ table.data tr.row-diff:hover { background: var(--diff-row); }
   border: 1px solid var(--border-strong);
   white-space: nowrap;
 }
-.badge-sub { display: block; margin-top: 2px; color: var(--muted); font-size: 11.5px; max-width: 30ch; }
+.badge-sub { display: block; margin-top: 2px; color: var(--muted); font-size: 11.5px; max-width: 26ch; }
 
 .trust {
   display: inline-block;
@@ -450,8 +460,8 @@ table.data tr.row-diff:hover { background: var(--diff-row); }
 .outcome.o-attempted { color: var(--muted); border-style: dashed; }
 .outcome-detail { display: block; color: var(--muted); font-size: 11.5px; margin-top: 2px; max-width: 30ch; }
 
-.evidence { display: flex; flex-direction: column; gap: 2px; min-width: 16ch; }
-.evidence .ev-line { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.evidence { display: flex; flex-direction: column; gap: 2px; min-width: 16ch; max-width: 26ch; }
+.evidence .ev-line { color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; white-space: normal; overflow-wrap: anywhere; }
 .chip.ev { align-self: flex-start; font-weight: 600; }
 .chip.ev-corroborated { color: var(--allow-fg); background: var(--allow-bg); border-color: var(--allow-border); }
 .chip.ev-insufficient, .chip.ev-conflict { color: var(--escalate-fg); background: var(--escalate-bg); border-color: var(--escalate-border); }
@@ -588,6 +598,8 @@ table.data tr.row-diff:hover { background: var(--diff-row); }
 .approval-result.ok { color: var(--allow-fg); }
 .approval-result.bad { color: var(--deny-fg); }
 .args-table { margin-top: 6px; }
+.args-table .chips { max-width: 520px; }
+.args-table .chip { max-width: 46ch; }
 .subhead { font-size: 13px; margin: 14px 0 6px; }
 .subhead:first-child { margin-top: 0; }
 .log-list { margin: 4px 0 0; padding-left: 18px; font-size: 12.5px; }
