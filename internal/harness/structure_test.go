@@ -98,10 +98,12 @@ func TestPlannerPromptsContainNoUntrustedValues(t *testing.T) {
 					}
 				}
 			}
-			for _, in := range inputs {
-				// The prompt builder is a pure function of its input.
-				if llm.BuildPlannerPrompt(in) != llm.BuildPlannerPrompt(in) {
-					t.Fatal("prompt builder is not deterministic")
+			for i, in := range inputs {
+				// The prompt builder is a pure function of its input: rebuilt
+				// later from the recorded input, it is the same prompt.
+				again := llm.BuildPlannerPrompt(in)
+				if again.System+"\n"+again.User != prompts[i] {
+					t.Fatal("prompt builder is not a pure function of its input")
 				}
 			}
 		}

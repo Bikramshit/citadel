@@ -27,7 +27,7 @@ FUZZ_TARGETS := \
 	./internal/handoff:FuzzVerifyMutatedEnvelope \
 	./internal/policy:FuzzApprovalKeyEncoding
 
-.PHONY: all build check fmt-check vet staticcheck govulncheck test traceability coverage \
+.PHONY: bench concurrency all build check fmt-check vet staticcheck govulncheck test traceability coverage \
         fuzz fuzz-ci keys m1 tune eval dash clean
 
 all: build
@@ -35,7 +35,7 @@ all: build
 build:
 	$(GO) build -o $(BIN) ./cmd/citadel
 
-check: fmt-check vet staticcheck govulncheck test traceability coverage
+check: fmt-check vet staticcheck govulncheck test concurrency traceability coverage
 
 fmt-check:
 	@out="$$(gofmt -l $$(git ls-files '*.go' 2>/dev/null || find . -name '*.go' -not -path './runs/*'))"; \
@@ -73,6 +73,15 @@ fuzz:
 		echo "fuzz $$name ($$pkg) for $(FUZZTIME)"; \
 		$(GO) test -run '^$$' -fuzz "^$$name$$" -fuzztime $(FUZZTIME) $$pkg || exit 1; \
 	done
+
+# Experiment 4: the Go layer's overhead, separate from model time.
+bench:
+	@mkdir -p runs/bench
+	$(GO) test -run '^$$' -bench . -benchmem -count 5 ./internal/... | tee runs/bench/bench.txt
+
+# Concurrency tests run 50 times under the race detector.
+concurrency:
+	$(GO) test -race -count=50 -run '^Test(CT[1-7]|L7)_' ./internal/runstate ./internal/handoff
 
 fuzz-ci:
 	$(MAKE) fuzz FUZZTIME=30s

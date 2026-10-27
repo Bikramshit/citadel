@@ -3,6 +3,7 @@ package handoff_test
 import (
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"strconv"
@@ -252,4 +253,20 @@ func FuzzVerifyMutatedEnvelope(f *testing.F) {
 			t.Fatalf("mutated envelope accepted: byte %d %q -> %q (run %s)", i, body[i], b, st.Ctx.RunID)
 		}
 	})
+}
+
+// Experiment 4: receiver verification of one envelope (steps 1 to 10).
+func BenchmarkVerify(b *testing.B) {
+	r := newRig(b, nil)
+	p := r.payload()
+	for b.Loop() {
+		id, err := handoff.NewID(rand.Reader)
+		if err != nil {
+			b.Fatal(err)
+		}
+		p.ID = id
+		if _, err := r.rcv.Verify(r.envelope(p), r.clock.Now()); err != nil {
+			b.Fatal(err)
+		}
+	}
 }

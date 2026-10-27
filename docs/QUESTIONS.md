@@ -75,11 +75,11 @@ E2 defines Corroborated (a trusted successful login from a corroborated IP) and 
 
 **Interim:** the generic decoder bounds every string at 16 KiB. After decoding, every payload string except `authctx.payload` and `authctx.sig` must be at most 256 bytes. The embedded context is then verified as its own signed token, with its own size limit.
 
-## Q12. `logs.read` with several hosts
+## Q12. `logs.read` with several hosts, and whether a host is a target
 
-The task allows 1 to 3 hosts, but `logs.read(host, window)` takes one host. The plan language has no way to collect values out of a loop, and the run allows only one handoff.
+The task allows 1 to 3 hosts, but `logs.read(host, window)` takes one host. The plan language has no way to collect values out of a loop, and the run allows only one handoff. Also, A2's precondition says "call has a target **or host**", and T-A3 expects a *runtime* A2 deny for `logs.read` on web-04, which a static I2 rejection of a literal host would prevent.
 
-**Interim:** the `host` argument accepts a hostname or a `list<hostname>`. A2 checks every element against the scope.
+**Interim:** the `host` argument accepts a hostname or a `list<hostname>`. It is a scope argument, not a target. I2 does not apply to it, and A2 checks every host against the task's hosts at runtime.
 
 ## Q13. Read-only calls and Admit
 
@@ -106,3 +106,27 @@ The catalog's data schema has only `ips` and `accounts`.
 ## Q17. Anchor of the task window
 
 **Interim:** the window ends at the context's issue time. Evidence uses [issued − window, issued]; `logs.read` uses the same window, read from the environment's clock, which harness and fixture runs set to the context's issue time.
+
+## Q18. T-A5: a static rejection where the specification expects a runtime I1 deny [security]
+
+T-A5 expects "Runtime Deny (I1) despite the signature" when a validly signed context wrongly grants `accounts.disable`. But effective capabilities are Static ∩ Grant ∩ TaskOps, and TaskOps comes from the catalog. So the wrong grant never reaches the effective set, and the static check rejects the plan (A1 and I1) before it runs.
+
+**Interim:** T-A5 is tested at both levels. `TestTA5_WrongGrantStillDeniedByIntent` covers the full stack: the plan is rejected and no account is disabled. `TestI1_TaskOperation` covers a runtime that computed capabilities from the grant alone: Decide denies the call with I1. Neither path can disable the account.
+
+## Q19. Which rules the static check runs
+
+The specification lists A1, I2, I3, H1, and H3 as static. T-A2 expects "Plan rejected (A1, I1)", and D2 expects the sender to refuse H2 with nothing sent.
+
+**Interim:** the static check also runs I1 and H2. Both are stricter than running them only at runtime. The runtime checks still apply in full: Decide runs I1, and CheckSend runs H2.
+
+## Q20. Invariants for C0
+
+C0 has no Citadel runtime, so invariants 2 to 8 and 10 to 13 describe machinery it does not have.
+
+**Interim:** C0 runs check invariant 9 (from the tool's own apply log) and measure invariant 1 as unauthorized side effects. No C0 run is marked invalid for lacking a runtime.
+
+## Q21. The fixture clock in the two-process demo
+
+M1's fixture is dated 2026-11-01, and its evidence and log windows are relative to that date. The demo runs two processes, both of which must agree on the time.
+
+**Interim:** in the demo, both processes use the same `OffsetClock`, which reads the fixture's time plus the wall time elapsed since a shared epoch. Every freshness, expiry, and watermark check runs on that shared timeline. Production configurations use the system clock.

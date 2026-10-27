@@ -579,3 +579,13 @@ func TestIdemKeyGoldenVectors(t *testing.T) {
 		t.Fatal("MarshalText")
 	}
 }
+
+// Experiment 4: admission under the run lock.
+func BenchmarkAdmit(b *testing.B) {
+	for b.Loop() {
+		rs, ac, h := activate(b)
+		for i := 0; i < 50; i++ {
+			rs.Admit(blockCall(ac, h, ipN(i), trustedPC), allow(), t0)
+		}
+	}
+}

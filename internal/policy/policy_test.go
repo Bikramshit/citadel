@@ -573,3 +573,13 @@ func TestA3_ProtectedPublicAsset(t *testing.T) {
 		t.Fatalf("protected public asset: %+v %v", final, all)
 	}
 }
+
+// Experiment 4: the Go layer's per-call decision cost.
+func BenchmarkDecide(b *testing.B) {
+	t := &testing.T{}
+	w := newWorld(t, policy.EvidenceOn, corroborated("198.51.100.23"))
+	c := w.call("responder", block, ip("198.51.100.23", qllm), nil)
+	for b.Loop() {
+		w.eng.Decide(c)
+	}
+}
