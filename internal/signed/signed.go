@@ -11,6 +11,7 @@ import (
 	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -333,23 +334,13 @@ func writeAtomic(path string, b []byte, mode fs.FileMode) error {
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	name := tmp.Name()
-	defer os.Remove(name)
-	if err := tmp.Chmod(mode); err != nil {
-		tmp.Close()
-		return fmt.Errorf("write %s: %w", path, err)
+	_, werr := tmp.Write(b)
+	err = errors.Join(tmp.Chmod(mode), werr, tmp.Sync(), tmp.Close())
+	if err == nil {
+		err = os.Rename(name, path)
 	}
-	if _, err := tmp.Write(b); err != nil {
-		tmp.Close()
-		return fmt.Errorf("write %s: %w", path, err)
-	}
-	if err := tmp.Sync(); err != nil {
-		tmp.Close()
-		return fmt.Errorf("write %s: %w", path, err)
-	}
-	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("write %s: %w", path, err)
-	}
-	if err := os.Rename(name, path); err != nil {
+	if err != nil {
+		os.Remove(name)
 		return fmt.Errorf("write %s: %w", path, err)
 	}
 	return nil

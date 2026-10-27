@@ -1,0 +1,35 @@
+[
+  {
+    "seed_hex": "1111111111111111111111111111111111111111111111111111111111111111",
+    "kid": "investigator-2026-10-a",
+    "agent": "investigator",
+    "role": "agent",
+    "prefix": "citadel-handoff-v1\u0000",
+    "public_key": "0EqyMnQrtKs6E2i9RhXk5tAiSrcaAWuvhSCjMsl3hzc",
+    "payload": "{\"v\":1,\"kid\":\"investigator-2026-10-a\",\"id\":\"m3B9xQ2rT8vK1pZ7yW4nLg\",\"run_id\":\"run_42\",\"from\":\"investigator\",\"to\":\"responder\",\"task\":\"contain_incident\",\"task_version\":1,\"requested_ops\":null,\"issued_at\":\"2026-11-01T10:00:00Z\",\"expires_at\":\"2026-11-01T10:05:00Z\",\"authctx\":{\"payload\":\"eyJ2Ijox\",\"kid\":\"orchestrator-2026-10-a\",\"sig\":\"AA\"},\"data\":[{\"name\":\"ips\",\"type\":\"list<ipv4>\",\"values\":[\"203.0.113.7\"],\"claimed_sources\":[\"tool:logs.read\",\"qllm:investigator\"]}]}",
+    "sig": "B4CDcoBXWSuXoJoCwpRUbX5wgMgFD2mRWOQFiw-gOPRp0XXc5DscwE3TabhYkL2diuRUIVriSrHc6-LPU9HWDw",
+    "wire": "{\"payload\":\"eyJ2IjoxLCJraWQiOiJpbnZlc3RpZ2F0b3ItMjAyNi0xMC1hIiwiaWQiOiJtM0I5eFEyclQ4dksxcFo3eVc0bkxnIiwicnVuX2lkIjoicnVuXzQyIiwiZnJvbSI6ImludmVzdGlnYXRvciIsInRvIjoicmVzcG9uZGVyIiwidGFzayI6ImNvbnRhaW5faW5jaWRlbnQiLCJ0YXNrX3ZlcnNpb24iOjEsInJlcXVlc3RlZF9vcHMiOm51bGwsImlzc3VlZF9hdCI6IjIwMjYtMTEtMDFUMTA6MDA6MDBaIiwiZXhwaXJlc19hdCI6IjIwMjYtMTEtMDFUMTA6MDU6MDBaIiwiYXV0aGN0eCI6eyJwYXlsb2FkIjoiZXlKMklqb3giLCJraWQiOiJvcmNoZXN0cmF0b3ItMjAyNi0xMC1hIiwic2lnIjoiQUEifSwiZGF0YSI6W3sibmFtZSI6ImlwcyIsInR5cGUiOiJsaXN0PGlwdjQ-IiwidmFsdWVzIjpbIjIwMy4wLjExMy43Il0sImNsYWltZWRfc291cmNlcyI6WyJ0b29sOmxvZ3MucmVhZCIsInFsbG06aW52ZXN0aWdhdG9yIl19XX0\",\"kid\":\"investigator-2026-10-a\",\"sig\":\"B4CDcoBXWSuXoJoCwpRUbX5wgMgFD2mRWOQFiw-gOPRp0XXc5DscwE3TabhYkL2diuRUIVriSrHc6-LPU9HWDw\"}"
+  },
+  {
+    "seed_hex": "2222222222222222222222222222222222222222222222222222222222222222",
+    "kid": "orchestrator-2026-10-a",
+    "agent": "orchestrator",
+    "role": "orchestrator",
+    "prefix": "citadel-authctx-v1\u0000",
+    "public_key": "oJql9HpnWYAv-VX43C0qFKXJnSO-l_hkEn_5ODRVpPA",
+    "payload": "{\"v\":1,\"run_id\":\"run_42\"}",
+    "sig": "JlqD7nwTfhNMiGILbNbyBy4euLPlxgv68LvPPjbdFB7UfbpTj8x6H0hpf8NILy7gmny7Hv2QbfKgIwJPH9gEBA",
+    "wire": "{\"payload\":\"eyJ2IjoxLCJydW5faWQiOiJydW5fNDIifQ\",\"kid\":\"orchestrator-2026-10-a\",\"sig\":\"JlqD7nwTfhNMiGILbNbyBy4euLPlxgv68LvPPjbdFB7UfbpTj8x6H0hpf8NILy7gmny7Hv2QbfKgIwJPH9gEBA\"}"
+  },
+  {
+    "seed_hex": "3333333333333333333333333333333333333333333333333333333333333333",
+    "kid": "responder-2026-10-a",
+    "agent": "responder",
+    "role": "agent",
+    "prefix": "citadel-handoff-v1\u0000",
+    "public_key": "F8t5-ytBIPKx7GXkGY1uCLKOgT_rAeSkAIObheGAgM4",
+    "payload": "{}",
+    "sig": "keoJD1mO_n1xAUb2F-S94EA8-JBZN5-Xq1MyoN1IOFh3wu94789sGCL-PRhB8rRl5plAkP9-_9TS73IugbUzAg",
+    "wire": "{\"payload\":\"e30\",\"kid\":\"responder-2026-10-a\",\"sig\":\"keoJD1mO_n1xAUb2F-S94EA8-JBZN5-Xq1MyoN1IOFh3wu94789sGCL-PRhB8rRl5plAkP9-_9TS73IugbUzAg\"}"
+  }
+]

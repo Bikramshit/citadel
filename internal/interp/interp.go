@@ -190,12 +190,14 @@ func (in *Interp) Run(ctx context.Context, input RunInput, p plan.Plan) Outcome 
 	defer input.RS.Close()
 	if err := plan.StaticCheck(p, in.StaticEnv(input)); err != nil {
 		var rej *plan.RejectError
-		var rules []string
+		var ds []policy.Decision
 		if errors.As(err, &rej) {
-			rules = rej.Rules()
+			for _, v := range rej.Violations {
+				ds = append(ds, policy.Decision{Verdict: policy.Deny, Rule: v.Rule, Group: ruleGroup(v.Rule), Reason: v.Path + ": " + v.Reason})
+			}
 		}
 		in.emit(input, events.Event{Kind: events.KindPlanRejected, Code: string(value.ErrPlanRejected),
-			Detail: value.Truncate(err.Error()), Sources: rules})
+			Detail: value.Truncate(err.Error()), Decisions: ds})
 		out.AbortCode, out.AbortDetail = string(value.ErrPlanRejected), err.Error()
 		return *out
 	}
@@ -737,6 +739,13 @@ func (x *exec) handoff(h *plan.HandoffStmt) error {
 		return abort(value.Code(sent.Response.Code), "receiver rejected the handoff")
 	}
 	return nil
+}
+
+func ruleGroup(rule string) string {
+	if rule == "schema" {
+		return "S"
+	}
+	return rule[:1]
 }
 
 func dedupe(ss []string) []string {
