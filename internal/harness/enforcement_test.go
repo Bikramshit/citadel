@@ -314,7 +314,9 @@ func TestX1_LostResponseReconciledNotRepeated(t *testing.T) {
 func TestX2_UncertainOutcomeReportedHonestly(t *testing.T) {
 	fx := scenario("X2", param("confirmed_ips", []string{"203.0.113.7"}),
 		faults(tools.Fault{Mode: tools.FaultDropAfterApply, Target: "203.0.113.7"}, tools.Fault{Mode: tools.FaultLookupDown}),
-		func(f *Fixture) { f.GroundTruth.Required = []Change{{Tool: "firewall", Action: "block", Target: "203.0.113.7"}} })
+		func(f *Fixture) {
+			f.GroundTruth.Required = []Change{{Tool: "firewall", Action: "block", Target: "203.0.113.7"}}
+		})
 	rec := run(t, fx, C2, nil)
 	at := attemptsFor(rec, "203.0.113.7")
 	if len(at) != 1 || at[0].State != runstate.Uncertain {
@@ -336,7 +338,9 @@ func TestX2_UncertainOutcomeReportedHonestly(t *testing.T) {
 // Failed; the run aborts; the diff is empty; nothing is retried.
 func TestX3_NeverReachedTheToolNoRetry(t *testing.T) {
 	fx := scenario("X3", param("confirmed_ips", []string{"203.0.113.7"}), faults(tools.Fault{Mode: tools.FaultDropBeforeApply}),
-		func(f *Fixture) { f.GroundTruth.Required = []Change{{Tool: "firewall", Action: "block", Target: "203.0.113.7"}} })
+		func(f *Fixture) {
+			f.GroundTruth.Required = []Change{{Tool: "firewall", Action: "block", Target: "203.0.113.7"}}
+		})
 	rec := run(t, fx, C2, nil)
 	at := attemptsFor(rec, "203.0.113.7")
 	if len(at) != 1 || at[0].State != runstate.Failed || !at[0].Reconciled {

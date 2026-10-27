@@ -300,7 +300,6 @@ func TestP15_SizeAndListLimits(t *testing.T) {
 	expectCode(t, "P15 long string", resp, value.ErrSchema)
 }
 
-
 func TestP16_IssuedBeforeReceiverStart(t *testing.T) {
 	r := newRig(t, nil)
 	p := r.payload()
