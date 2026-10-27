@@ -33,8 +33,11 @@
   --serious: #ec835a;
   --critical: #d03b3b;
   --critical-ink: #a32424;
-  --glow-a: rgba(42, 120, 214, 0.16);
-  --glow-b: rgba(235, 104, 52, 0.07);
+  --aura-1: rgba(42, 120, 214, 0.2);
+  --aura-2: rgba(99, 102, 241, 0.14);
+  --aura-3: rgba(14, 165, 233, 0.1);
+  --wash: rgba(255, 255, 255, 0.75);
+  --grain: 0.035;
   --shadow: 0 1px 2px rgba(11, 11, 11, 0.04), 0 8px 24px -12px rgba(11, 11, 11, 0.12);
 }
 
@@ -61,8 +64,11 @@
   --good-ink: #0ca30c;
   --warning-ink: #fab219;
   --critical-ink: #e66767;
-  --glow-a: rgba(57, 135, 229, 0.18);
-  --glow-b: rgba(217, 89, 38, 0.08);
+  --aura-1: rgba(57, 135, 229, 0.28);
+  --aura-2: rgba(124, 108, 255, 0.2);
+  --aura-3: rgba(34, 184, 207, 0.1);
+  --wash: rgba(255, 255, 255, 0.025);
+  --grain: 0.05;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -16px rgba(0, 0, 0, 0.7);
 }
 
@@ -108,27 +114,44 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* The blueprint: a faint grid and two soft glows behind the content. */
-.blueprint {
-  background-image:
-    radial-gradient(60rem 30rem at 15% -10%, var(--glow-a), transparent 60%),
-    radial-gradient(50rem 26rem at 95% 0%, var(--glow-b), transparent 60%),
-    linear-gradient(var(--line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size:
-    auto,
-    auto,
-    32px 32px,
-    32px 32px;
-  background-position:
-    0 0,
-    0 0,
-    -1px -1px,
-    -1px -1px;
+/* The ambient backdrop: a fixed layer behind the content, so it stays put
+   while pages scroll and shows through the frosted sidebar. Blue and indigo
+   light from the top corners, a faint cyan low on the right, a soft wash
+   from above, and fine grain to keep the gradients from banding. Orange is
+   left out: in this UI it means untrusted. */
+.ambient {
+  position: relative;
+  isolation: isolate;
 }
 
-.mask-fade {
-  mask-image: linear-gradient(to bottom, black 0%, black 55%, transparent 100%);
+.ambient::before,
+.ambient::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.ambient::before {
+  background:
+    radial-gradient(ellipse 60% 55% at 30% -14%, var(--aura-1), transparent 70%),
+    radial-gradient(ellipse 45% 50% at 88% -10%, var(--aura-2), transparent 70%),
+    radial-gradient(ellipse 55% 50% at 100% 108%, var(--aura-3), transparent 70%),
+    linear-gradient(180deg, var(--wash), transparent 38%);
+}
+
+.ambient::after {
+  opacity: var(--grain);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+@media print {
+  .ambient::before,
+  .ambient::after {
+    display: none;
+  }
 }
 
 .tabular {

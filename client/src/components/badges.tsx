@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   TriangleAlert,
 } from "lucide-react";
+import { useId } from "react";
 import type { AttemptState, Verdict } from "@/lib/types";
 import { clip, sourceKind, sourceTrusted, visible } from "@/lib/derive";
 import { cx } from "./ui";
@@ -168,18 +169,21 @@ export function ImplBanner({ impl }: { impl?: string }) {
 }
 
 export function Logo({ className }: { className?: string }) {
-  // A battlement over a keyhole: the citadel, and the signed boundary.
+  // A battlement over a keyhole: the citadel, and the signed boundary. Each
+  // instance needs its own gradient id: a shared one resolves to the first
+  // copy in the document, which may sit in a hidden sidebar and not render.
+  const id = useId();
   return (
     <svg viewBox="0 0 32 32" className={className} aria-hidden>
       <defs>
-        <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="var(--accent)" />
           <stop offset="1" stopColor="var(--accent-ink)" />
         </linearGradient>
       </defs>
       <path
         d="M5 6h4v3h3V6h3v3h2V6h3v3h3V6h4v11c0 6-5.2 9.7-11 11.5C10.2 26.7 5 23 5 17V6z"
-        fill="url(#lg)"
+        fill={`url(#${id})`}
       />
       <circle cx="16" cy="16" r="2.6" fill="var(--surface)" />
       <path d="M14.7 17.5h2.6l.9 5h-4.4z" fill="var(--surface)" />

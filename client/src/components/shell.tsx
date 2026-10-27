@@ -106,7 +106,7 @@ export function Shell({ children }: { children: ReactNode }) {
   const path = usePathname();
   const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
   return (
-    <div className="blueprint min-h-dvh">
+    <div className="ambient min-h-dvh">
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 flex-col border-r border-line bg-surface/80 backdrop-blur-xl lg:flex">
         <Link href="/" className="flex items-center gap-2.5 px-5 pb-6 pt-6">
           <Logo className="size-8" />
