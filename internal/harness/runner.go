@@ -62,7 +62,9 @@ func GitState(repo string) (string, bool, error) {
 	if err != nil {
 		return "", false, fmt.Errorf("%w: git rev-parse: %v", value.ErrConfig, err)
 	}
-	status, err := git(repo, "status", "--porcelain")
+	// The run directory being written lives under runs/; it does not make the
+	// code dirty.
+	status, err := git(repo, "status", "--porcelain", "--", ".", ":(exclude)runs")
 	if err != nil {
 		return "", false, fmt.Errorf("%w: git status: %v", value.ErrConfig, err)
 	}

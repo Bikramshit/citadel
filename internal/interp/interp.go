@@ -39,16 +39,18 @@ import (
 // call, every argument's sources, the evidence counts, and the rule that
 // escalated.
 type ApprovalRequest struct {
-	RunID     string
-	Agent     string
-	Key       policy.ApprovalKey
-	Op        authz.Op
-	Target    string
-	Args      map[string]string
-	Sources   map[string][]string
-	Evidence  *evidence.Counts
-	Decision  policy.Decision
-	ExpiresAt time.Time
+	RunID    string
+	Agent    string
+	Key      policy.ApprovalKey
+	Op       authz.Op
+	Target   string
+	Args     map[string]string
+	Sources  map[string][]string
+	Evidence *evidence.Counts
+	Decision policy.Decision
+	// RequestedAt and ExpiresAt are on the run's clock.
+	RequestedAt time.Time
+	ExpiresAt   time.Time
 }
 
 // Approver obtains the principal's answer. It returns once it has called
@@ -566,7 +568,8 @@ func (x *exec) call(e *plan.Expr) (value.Value, bool, error) {
 func (x *exec) escalate(c *policy.CallCtx, final, d policy.Decision, all []policy.Decision, args map[string]value.Value, evid *evidence.Counts) (*runstate.Attempt, policy.Decision, []policy.Decision) {
 	in := x.input
 	k := policy.KeyFor(c)
-	ap := in.RS.RequestApproval(k, x.in.deps.Clock.Now())
+	requested := x.in.deps.Clock.Now()
+	ap := in.RS.RequestApproval(k, requested)
 	info := &events.Approval{Key: k, State: ap.State.String(), ExpiresAt: ap.ExpiresAt, Args: canonicalArgs(args),
 		Sources: sourcesOf(args), Rule: d.Rule, Reason: d.Reason}
 	target, tsrc := "", []string(nil)
@@ -576,7 +579,7 @@ func (x *exec) escalate(c *policy.CallCtx, final, d policy.Decision, all []polic
 	x.in.emit(in, events.Event{Kind: events.KindApprovalRequest, Op: &c.Op, Target: target, Sources: tsrc, Approval: info, Evidence: evid})
 	actx, cancel := context.WithCancel(x.ctx)
 	err := x.in.deps.Approver.Await(actx, in.RS, ApprovalRequest{RunID: in.Ctx.RunID, Agent: x.in.cfg.Agent, Key: k, Op: c.Op,
-		Target: target, Args: canonicalArgs(args), Sources: sourcesOf(args), Evidence: evid, Decision: d, ExpiresAt: ap.ExpiresAt})
+		Target: target, Args: canonicalArgs(args), Sources: sourcesOf(args), Evidence: evid, Decision: d, RequestedAt: requested, ExpiresAt: ap.ExpiresAt})
 	cancel()
 	got, _ := in.RS.Approval(k)
 	answer := *info

@@ -39,11 +39,16 @@ type Pending struct {
 	Request ApprovalRequest
 	rs      *runstate.RunState
 	answer  chan error
+	since   time.Time // the approver's clock when the wait began
 }
 
 // ChannelApprover holds escalations until the principal answers through the
 // dashboard or the agent's approval endpoint, or the approval expires.
 type ChannelApprover struct {
+	// Clock measures how long a request has waited. An answer is stamped on
+	// the run's own timeline, the request's RequestedAt plus that wait, so a
+	// run replayed at a fixture's time expires its approvals on that
+	// timeline rather than against the wall clock.
 	Clock value.Clock
 	// Wait bounds how long a request waits in wall-clock time; the approval's
 	// own expiry is enforced by the run state.
@@ -62,7 +67,7 @@ func NewChannelApprover(clock value.Clock, wait time.Duration, notify func(Appro
 
 // Await waits for Answer, the wall-clock bound, or ctx.
 func (c *ChannelApprover) Await(ctx context.Context, rs *runstate.RunState, req ApprovalRequest) error {
-	p := &Pending{Request: req, rs: rs, answer: make(chan error, 1)}
+	p := &Pending{Request: req, rs: rs, answer: make(chan error, 1), since: c.Clock.Now()}
 	c.mu.Lock()
 	c.pending[req.Key] = p
 	c.mu.Unlock()
@@ -95,7 +100,11 @@ func (c *ChannelApprover) Answer(key policy.ApprovalKey, approver string, yes bo
 	if !ok {
 		return fmt.Errorf("%w: %s is not pending", value.ErrNoSuchApproval, key)
 	}
-	err := p.rs.Approve(key, approver, yes, c.Clock.Now())
+	now := c.Clock.Now()
+	if !p.Request.RequestedAt.IsZero() {
+		now = value.OffsetClock{Base: p.Request.RequestedAt, Epoch: p.since, Wall: c.Clock.Now}.Now()
+	}
+	err := p.rs.Approve(key, approver, yes, now)
 	if err == nil { // a refused answer (a non-principal, say) leaves the request waiting
 		select {
 		case p.answer <- nil:

@@ -81,3 +81,40 @@ func TestChannelApprover(t *testing.T) {
 		t.Fatal("cancelled wait must decline")
 	}
 }
+
+// An answer is stamped on the run's timeline: the request time plus the
+// wait. A wall clock far past the fixture's time does not expire a request;
+// waiting longer than the approval's lifetime does.
+func TestChannelApproverRunTimeline(t *testing.T) {
+	rs := run(t)
+	wall := value.NewManualClock(t0.AddDate(0, 1, 0))
+	notified := make(chan ApprovalRequest, 1)
+	c := NewChannelApprover(wall, time.Minute, func(r ApprovalRequest) { notified <- r })
+	await := func(ctx context.Context, k policy.ApprovalKey) chan error {
+		rs.RequestApproval(k, t0)
+		done := make(chan error, 1)
+		go func() { done <- c.Await(ctx, rs, ApprovalRequest{Key: k, RequestedAt: t0}) }()
+		<-notified
+		return done
+	}
+
+	done := await(context.Background(), policy.ApprovalKey{5})
+	wall.Advance(time.Minute)
+	if err := c.Answer(policy.ApprovalKey{5}, "analyst-1", true); err != nil {
+		t.Fatalf("answer within the lifetime: %v", err)
+	}
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done = await(ctx, policy.ApprovalKey{6})
+	wall.Advance(policy.ApprovalLifetime)
+	if err := c.Answer(policy.ApprovalKey{6}, "analyst-1", true); !errors.Is(err, value.ErrApprovalExpired) {
+		t.Fatalf("answer after the lifetime: %v", err)
+	}
+	cancel()
+	if err := <-done; !errors.Is(err, value.ErrApprovalDeclined) {
+		t.Fatal("cancelled wait must decline")
+	}
+}
