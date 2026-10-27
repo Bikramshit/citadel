@@ -11,6 +11,13 @@ You are a senior Go security engineer. Build Citadel: a Go agent runtime that ap
 - When the specification is ambiguous, contradictory, or impossible to implement as written, stop. Record the problem and the options in `docs/QUESTIONS.md` and ask me. Never resolve a security-relevant ambiguity silently.
 - Use the specification's identifiers everywhere: rule IDs (A0 to A5, I1 to I3, F0, F1, F3, E1, E2, H1 to H6, C1, D0), test IDs (T-A1 to T-A7, D1 to D5, E-T1 to E-T13, P1 to P18, L1 to L7, CT1 to CT7, X1 to X3, M1), invariants 1 to 13, configuration names (C0, C1-instr, C1-data, C2), fixture IDs, and every `ERR_` code.
 
+**Git authorship and commit rules.**
+
+- All git commits MUST be authored and committed solely by `bikramshit <bikramsit000@gmail.com>`.
+- NEVER add `Co-Authored-By: Claude...` or any other co-author/AI attribution trailer to git commit messages.
+- NEVER set author or committer to Claude.
+- Commit messages must contain only the clean description of code changes.
+
 ## What "production grade, no dummy code" means
 
 **Required.**
@@ -273,7 +280,7 @@ CI runs `make check` and 30 seconds per fuzz target on every push.
 **How to work.**
 
 1. Start by reading `docs/ARCHITECTURE.md` in full. Write a short plan in `docs/PROGRESS.md`: components, phases, and open questions. Then ask me the gate questions.
-2. Work one phase at a time, in small commits with clear messages.
+2. Work one phase at a time, in small commits with clear messages. Every commit must be authored solely by `bikramshit <bikramsit000@gmail.com>`, with no `Co-Authored-By` lines.
 3. Before calling anything done, run `make check` and the phase's exit tests, and record a summary of the output in `docs/PROGRESS.md`.
 4. Never claim a test passes without running it. Never write a result you did not compute.
 
